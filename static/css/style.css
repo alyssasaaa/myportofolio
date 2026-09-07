@@ -8,12 +8,12 @@
 
 :root {
     --ink: #1c1917;
-    --paper: #faf6f0;
+    --paper: #FFFEF3;
     --accent: #e06cb0;
     --accent-dark: #a33e79;
-    --line: #e3d9c9;
+    --line: #D8D6C4;
     --text-muted: #6b6459;
-    --radius: 4px;
+    --radius: 1.5rem;
 }
 
 body {
@@ -23,7 +23,7 @@ body {
     line-height: 1.6;
 }
 
-h1, .brand {
+h1 {
     font-family: "Space Grotesk", -apple-system, sans-serif;
 }
 
@@ -37,6 +37,7 @@ h1, .brand {
 
 .site-header {
     border-bottom: 1px solid var(--line);
+    background-color: var(--paper);
 }
 
 .site-header .container {
@@ -44,13 +45,20 @@ h1, .brand {
     justify-content: space-between;
     align-items: center;
     padding: 1.25rem 1.5rem;
+    height: 73px;
 }
 
 .brand {
-    font-size: 1.3rem;
-    font-weight: 700;
-    color: var(--ink);
-    text-decoration: none;
+    display: block;
+    width: clamp(88px, 8vw, 100px);
+    flex-shrink: 0;
+    line-height: 0;
+}
+
+.brand-logo {
+    display: block;
+    width: 100%;
+    height: auto;
 }
 
 .site-header nav {
@@ -70,7 +78,57 @@ h1, .brand {
     padding: 4.5rem 0 5rem;
 }
 
+/* vectors background */ 
+.hero::before {
+    content: "";
+    position: absolute;
+    top: 50px;
+    left: 0;
+    width: 100%;
+    height: 300px;
+    background-image: url('/static/img/vector-1.svg');
+    background-repeat: no-repeat;
+    background-position: top center;
+    background-size: 100% auto; 
+    z-index: -1;
+    pointer-events: none;
+    opacity: 0.8;
+}
+
+.hero::after {
+    content: "";
+    position: absolute;
+    top: 554px;
+    left: 0;
+    width: 100%;
+    height: 300px; 
+    background-image: url('/static/img/vector-2.svg');
+    background-repeat: no-repeat;
+    background-position: bottom center;
+    background-size: 100% auto; 
+    z-index: -1;
+    pointer-events: none;
+    opacity: 0.8;
+} 
+
+@media (max-width: 600px) {
+    .hero::before {
+        top: 62px;   
+        left: 50;              
+        height: 180px;           
+        background-size: 130% auto; 
+    }
+
+    .hero::after {
+        top: 920px;             
+        height: 180px;            
+        background-size: 130% auto;
+    }
+}
+
 .hero-grid {
+    position: relative;
+    z-index: 1;
     display: grid;
     grid-template-columns: 1.3fr 1fr;
     grid-template-areas:
@@ -150,29 +208,144 @@ h1, .brand {
 .hero-photo {
     grid-area: photo;
     align-self: center;
-    position: relative;
-}
-
-.photo-block {
-    position: absolute;
-    top: 1.25rem;
-    left: 1.25rem;
+    justify-self: start;
     width: 100%;
-    height: 100%;
-    background-color: var(--accent);
-    border-radius: var(--radius);
-    z-index: 0;
+    max-width: 376px;
 }
 
 .avatar {
-    position: relative;
-    z-index: 1;
     display: block;
     width: 100%;
-    aspect-ratio: 1 / 1;
-    object-fit: cover;
-    border-radius: var(--radius);
-    border: 3px solid var(--ink);
+    height: auto;
+}
+
+/* EDUCATION SECTION WITH CSS GRID */
+.education {
+    padding-top: 3rem; 
+    padding-bottom: 3rem;
+}
+
+.education-grid {
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 3rem;
+    margin-top: 1.5rem;
+}
+
+.education-card {
+    position: relative;
+    overflow: hidden;
+    overflow-wrap: normal;
+    min-height: 480px;
+    padding: 2rem;
+    background: #ffeb8e;
+    background-image: linear-gradient(
+        rgba(160, 120, 0, 0.12) 1.5px, 
+        transparent 1px
+    );
+    background-size: 100% 28px; 
+    border: 4px solid #efd363;
+    border-radius: 1.5rem;
+}
+
+.education-copy {
+    position: relative;
+    z-index: 1;
+    max-width: 58%;
+}
+
+.sma-illustration {
+    position: absolute;
+    right: -8.5rem;
+    bottom: 0rem;
+    width: 425px;
+    height: auto;
+    z-index: 2;
+    filter: drop-shadow(0px 0px 24px rgba(224, 108, 176, 0.45));
+}
+
+.uni-illustration {
+    position: absolute;
+    right: -9rem;
+    bottom: -1rem;
+    width: 420px;
+    height: auto;
+    z-index: 2;
+    filter: drop-shadow(0px 0px 24px rgba(224, 108, 176, 0.45));
+}
+
+@media (max-width: 600px) {
+    .education-grid {
+        grid-template-columns: 1fr;
+        gap: 1.5rem;
+    }
+
+    .education-card {
+        min-height: 380px;
+        padding: 1.5rem;
+    }
+
+    .education-copy {
+        max-width: 55%; 
+    }
+
+    .sma-illustration {
+        width: 420px;
+        right: -10rem;
+        bottom: 0rem;
+    }
+
+    .uni-illustration {
+        width: 420px;
+        right: -10rem;
+        bottom: 0rem;
+    }
+}
+
+.section-kicker {
+    font-size: 0.85rem;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+    color: var(--accent-dark);
+    font-weight: 700;
+    margin-bottom: 0.75rem;
+}
+
+.education h2 {
+    font-size: clamp(2.5rem, 5vw, 3.5rem); 
+    font-family: "Space Grotesk", -apple-system, sans-serif;
+}
+
+.education-year {
+    font-family: inherit;      
+    font-style: normal;        
+    font-weight: 600;
+    color: var(--text-muted);  
+    margin-bottom: 0.25rem;
+}
+
+.education-copy h3 {
+    font-family: "Space Grotesk", -apple-system, sans-serif; 
+    font-size: 1.75rem;
+    margin-bottom: 0.25rem;
+}
+
+.education-description {
+    color: var(--text-muted); 
+    font-size: 0.95rem;
+    margin-bottom: 1.5rem;
+}
+
+.education-copy h4 {
+    font-size: 1rem;
+    font-weight: 700; 
+    margin-bottom: 0.5rem;
+}
+
+.education-copy ul {
+    list-style-type: disc;
+    margin-left: 1.25rem;
+    margin-bottom: 1.5rem;
 }
 
 /* FOOTER & RESPONSIVENESS */
@@ -194,7 +367,7 @@ h1, .brand {
     }
 
     .hero-photo {
-        max-width: 220px;
+        width: min(70vw, 280px);
     }
 
     .social-links {
