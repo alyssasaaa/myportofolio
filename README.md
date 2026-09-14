@@ -26,3 +26,24 @@ WORKING STRATEGY:
     - Placement & layering for my background vectors
     - Responsive breakpoints & layout shifts (half Me half AI)
     - Asked AI about the design like is it executable, is it responsive when implemented, etc.
+
+### Assignment 2
+
+1. The new section (applying models): Education & Experience
+When user opens/click the Education page, the request first goes through portofolio/urls.py, which connects it to main/urls.py. The /education/ route then calls show_education in views.py. This view retrieves data from the Education model and sends it to education.html through education_list. The template loops through the data (codes in education.html) and displays each object as a card, as seen in the education page. If there is no data, it displays an empty-state message. This whole process is also applied when user opens/click my Experience page. The difference is just the route and the html & lists.
+
+2. If the Education & Experience data were written directly in the template, the HTML would become packed with both code & content, hence become harder to read. By using model, the data is stored seperately in the database while the HTML only manages how it is displayed. Of course, using models would make the maintenance become easier as it ables to add or update records through the Django shell without rewriting the card structure. For example is when I want to change the description of my education card, I just need to run the command Education.objects.filter(...).update(...)
+
+3. In simple words, makemigrations creates instructions based on changes in the models, while migrate applies those changes to the database. For example in this project is when I added stage_choices and stage for my experience model and skills for my education model. Then for us to be able to insert our data to the database, we are required to run the command makemigrations and migrate beforehand. Otherwise, Django would return an error because the database columns did not exist yet.
+
+WORKING STRATEGY
+1. Work on the Education page
+    - Move education page from the profile page into its own page
+    - Change the layout from side-by-side to vertically stacked landscape cards 
+    - Turn skills list into chip
+    - Add links (buttons) that directs to experience section
+2. Work on the Experience page
+    - Seperate University and High School section experiences
+    - Add organizations and committee into categories
+    - Add experiences through Django shell
+3. I used Codex AI mainly to understand & asked for the confirmation of the MVT flow, models, migrations, diagnose errors, get suggestion for the CSS layout & styles, and the unit tests making. I reviewed the suggestions and implemented the changes the AI suggest manually based on my own portfolio design.
