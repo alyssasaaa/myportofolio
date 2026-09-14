@@ -10,13 +10,14 @@
         <link rel="stylesheet" href="/static/css/style.css">
     </head>
     <body>
-        <header class="site-header">
+       <header class="site-header">
             <div class="container">
                 <a href="{% url 'main:show_main' %}" class="brand">
                     <img class="brand-logo" src="/static/img/header-logo.png" alt="Alyssa">
                 </a>
                 <nav>
                     <a href="{% url 'main:show_main' %}">Profile</a>
+                    <a href="{% url 'main:show_education' %}">Education</a>
                     <a href="{% url 'main:show_experience' %}">Experience</a>
                 </nav>
             </div>
@@ -49,55 +50,6 @@
                             <a href="https://id.linkedin.com/in/alyssa-rahma-adjani-bb0410378" class="social-link">LinkedIn</a>
                             <a href="mailto:alyssaadjani1@gmail.com" class="social-link">Email</a>
                         </div>
-                    </div>
-                </div>
-            </section>
-
-            <section class="education" id="education">
-                <div class="container">
-                    <p class="section-kicker">Academic Journey</p>
-                    <h1>Education</h1>
-
-                    <div class="education-grid">
-
-                        <article class="education-card">
-                            <img class="sma-illustration"
-                                    src="/static/img/sasa-sma.png" alt="Illustration of Alyssa SMA">
-                            <div class="education-copy">
-                                <p class="education-year">2022–2025</p>
-                                <h3>BINUS School Serpong</h3>
-                                <p class="education-description">Three years of growing and changing, where I found different versions
-                                    of myself and built foundations that I'll carry with me in my future endeavors.
-                                </p>
-
-                                <h4>Skills:</h4>
-                                <ul>
-                                    <li>Leadership</li>
-                                    <li>Teamwork</li>
-                                    <li>Critical Thinking</li>
-                                    <li>Problem Solving</li>
-                                </ul>
-                            </div>
-                        </article>
-            
-                        <article class="education-card">
-                            <img class="uni-illustration" 
-                                src="/static/img/sasa-uni.png" alt="Illustration of Alyssa in UI jacket">
-                            <div class="education-copy">
-                                <p class="education-year">2025–present</p>
-                                <h3>Universitas Indonesia</h3>
-                                <p class="education-description">Majoring in Computer Science International Class Program at Fakultas Ilmu Komputer, Universitas Indonesia.
-                                </p>
-
-                                <h4>Skills & Tools:</h4>
-                                <ul>
-                                    <li>Python</li>
-                                    <li>Java</li>
-                                    <li>Figma</li>
-                                    <li>Visual Design</li>
-                                </ul>
-                            </div>
-                        </article>
                     </div>
                 </div>
             </section>

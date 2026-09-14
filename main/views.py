@@ -1,6 +1,6 @@
 from django.shortcuts import render
 
-from main.models import Experience
+from main.models import Education, Experience
 
 # Create your views here.
 def show_main(request):
@@ -20,7 +20,16 @@ def show_main(request):
 
 def show_experience(request):
     context = {
-        "name": "Burhan",
+        "name": "Alyssa Rahma Adjani",
+        "nickname": "Alyssa",
         "experience_list": Experience.objects.all(),
     }
     return render(request, "experience.html", context)
+
+def show_education(request):
+    context = {
+        "name": "Alyssa Rahma Adjani",
+        "nickname": "Alyssa",
+        "education_list": Education.objects.all(),
+    }
+    return render(request, "education.html", context)
