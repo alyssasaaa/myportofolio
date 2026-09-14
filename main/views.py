@@ -22,7 +22,9 @@ def show_experience(request):
     context = {
         "name": "Alyssa Rahma Adjani",
         "nickname": "Alyssa",
-        "experience_list": Education.objects.all(),
+        "experience_list": Experience.objects.all(),
+        "university_experience_list": Experience.objects.all().filter(stage="university"),
+        "high_school_experience_list": Experience.objects.all().filter(stage="high-school"),
     }
     return render(request, "experience.html", context)
 

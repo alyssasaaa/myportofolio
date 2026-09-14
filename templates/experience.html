@@ -24,13 +24,13 @@
         </header>
 
         <main>
-            <section class="experience-section" id="experience">
+            <section class="experience-section" id="university">
                 <div class="container">
-                    <p class="section-kicker">My journey so far</p>
-                    <h1>Experience</h1>
+                    <p class="section-kicker">My campus journey</p>
+                    <h1>University Experiences</h1>
 
                     <div class="experience-grid">
-                        {% for experience in experience_list %}
+                        {% for experience in university_experience_list %}
                             <article class="experience-card">
                                 <span class="experience-category">
                                     {{ experience.get_category_display }}
@@ -48,7 +48,38 @@
                             </article>
                         {% empty %}
                             <p class="empty-state">
-                                No experience has been added yet.
+                                No university experience has been added yet.
+                            </p>
+                        {% endfor %}
+                    </div>
+                </div>
+            </section>
+
+            <section class="experience-section" id="high-school">
+                <div class="container">
+                    <p class="section-kicker">My high school journey</p>
+                    <h1>High School Experiences</h1>
+
+                    <div class="experience-grid">
+                        {% for experience in high_school_experience_list %}
+                            <article class="experience-card">
+                                <span class="experience-category">
+                                    {{ experience.get_category_display }}
+                                </span>
+                                <h2>{{ experience.title }}</h2>
+                                <p class="experience-description">
+                                    {{ experience.description }}
+                                </p>
+
+                                {% if experience.is_ongoing %}
+                                    <p class="experience-status">Ongoing</p>
+                                {% else %}
+                                    <p class="experience-status">Completed</p>
+                                {% endif %}
+                            </article>
+                        {% empty %}
+                            <p class="empty-state">
+                                No high school experience has been added yet.
                             </p>
                         {% endfor %}
                     </div>
