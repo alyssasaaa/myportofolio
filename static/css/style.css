@@ -227,17 +227,18 @@ h1 {
 
 .education-grid {
     display: grid;
-    grid-template-columns: repeat(2, minmax(0, 1fr));
+    grid-template-columns: 1fr;
     gap: 3rem;
     margin-top: 1.5rem;
 }
 
 .education-card {
     position: relative;
-    overflow: hidden;
-    overflow-wrap: normal;
-    min-height: 480px;
+    width: 100%;
+    height: 420px;
     padding: 2rem;
+    overflow: hidden;
+
     background: #ffeb8e;
     background-image: linear-gradient(
         rgba(160, 120, 0, 0.12) 1.5px, 
@@ -250,55 +251,52 @@ h1 {
 
 .education-copy {
     position: relative;
-    z-index: 1;
-    max-width: 58%;
+    z-index: 3;
+    max-width: 65%;
+}
+
+.sma-illustration,
+.uni-illustration {
+    position: absolute;
+    bottom: 0;
+    width: auto;
+    object-fit: contain;
+    z-index: 2;
+    filter: drop-shadow(0 0 24px rgba(224, 108, 176, 0.45));
 }
 
 .sma-illustration {
-    position: absolute;
-    right: -8.5rem;
-    bottom: 0rem;
-    width: 425px;
-    height: auto;
-    z-index: 2;
-    filter: drop-shadow(0px 0px 24px rgba(224, 108, 176, 0.45));
+    right: -6rem;
+    height: 105%;
 }
 
 .uni-illustration {
-    position: absolute;
-    right: -9rem;
-    bottom: -1rem;
-    width: 420px;
-    height: auto;
-    z-index: 2;
-    filter: drop-shadow(0px 0px 24px rgba(224, 108, 176, 0.45));
+    right: -6rem;
+    height: 105%;
 }
 
-@media (max-width: 600px) {
+@media (max-width: 650px) {
     .education-grid {
-        grid-template-columns: 1fr;
         gap: 1.5rem;
     }
 
     .education-card {
-        min-height: 380px;
+        height: 700px;
         padding: 1.5rem;
     }
 
     .education-copy {
-        max-width: 55%; 
+        max-width: 65%;
     }
 
     .sma-illustration {
-        width: 420px;
-        right: -10rem;
-        bottom: 0rem;
+        right: -12rem;
+        height: 80%;
     }
 
     .uni-illustration {
-        width: 420px;
-        right: -10rem;
-        bottom: 0rem;
+        right: -12rem;
+        height: 80%;
     }
 }
 
@@ -312,13 +310,15 @@ h1 {
 }
 
 .education h2 {
-    font-size: clamp(2.5rem, 5vw, 3.5rem); 
+    font-size: clamp(2rem, 4vw, 3rem);
     font-family: "Space Grotesk", -apple-system, sans-serif;
+    line-height: 1.1;
+    margin-bottom: 0.4rem;
 }
 
 .education-year {
     font-family: inherit;      
-    font-style: normal;        
+    font-size: 0.9rem;      
     font-weight: 600;
     color: var(--text-muted);  
     margin-bottom: 0.25rem;
@@ -326,8 +326,9 @@ h1 {
 
 .education-copy h3 {
     font-family: "Space Grotesk", -apple-system, sans-serif; 
-    font-size: 1.75rem;
-    margin-bottom: 0.25rem;
+    font-size: 1.25rem;
+    margin-bottom: 0.6rem;
+    line-height: 1.3;
 }
 
 .education-description {
@@ -346,6 +347,78 @@ h1 {
     list-style-type: disc;
     margin-left: 1.25rem;
     margin-bottom: 1.5rem;
+}
+
+/* SKILLS CHIP */
+
+.education-skills {
+    margin-bottom: 1rem;
+}
+
+.education-skills-label {
+    margin-bottom: 0.4rem;
+    font-size: 0.75rem;
+    font-weight: 700;
+    letter-spacing: normal;
+}
+
+.education-skill-list {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.4rem;
+}
+
+.education-skill {
+    display: inline-flex;
+    align-items: center;
+    padding: 0.3rem 0.7rem;
+
+    color: var(--ink);
+    background-color: rgba(255, 254, 243, 0.75);
+    border: 1px solid rgba(28, 25, 23, 0.2);
+    border-radius: 999px;
+
+    font-size: 0.72rem;
+    font-weight: 600;
+}
+
+/* EXPERIENCE BUTTON */
+
+.education-experience-link {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.5rem;
+
+    margin-top: 0.1rem;
+    padding: 0.55rem 1rem;
+    letter-spacing: 0.02em;
+
+    color: var(--paper);
+    background-color: var(--ink);
+    border-radius: 999px;
+
+    font-size: 0.75rem;
+    font-weight: 700;
+    text-decoration: none;
+
+    transition:
+        background-color 0.2s ease,
+        transform 0.2s ease;
+}
+
+.education-link-arrow {
+    font-size: 1rem;
+    line-height: 1;
+    transition: transform 0.2s ease;
+}
+
+.education-experience-link:hover {
+    background-color: var(--accent-dark);
+    transform: translateY(-2px);
+}
+
+.education-experience-link:hover .education-link-arrow {
+    transform: translateX(3px);
 }
 
 /* FOOTER & RESPONSIVENESS */
