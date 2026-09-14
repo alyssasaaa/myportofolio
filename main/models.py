@@ -11,6 +11,13 @@ class Experience(models.Model):
         ("part-time", "Part-Time"),
         ("full-time", "Full-Time"),
         ("freelance", "Freelance"),
+        ("committee", "Committee"),
+        ("organization", "Organization"),
+    ]
+
+    STAGE_CHOICES = [
+            ("university", "University"),
+            ("high-school", "High School"),
     ]
 
     id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
@@ -21,6 +28,11 @@ class Experience(models.Model):
         choices=EXPERIENCE_CHOICES,
         default="full-time",
     )
+    stage = models.CharField(
+            max_length=20,
+            choices=STAGE_CHOICES,
+            default="university",
+        )
     thumbnail = models.URLField(blank=True, null=True)
     started_at = models.DateTimeField(auto_now_add=True)
     ended_at = models.DateTimeField(blank=True, null=True)

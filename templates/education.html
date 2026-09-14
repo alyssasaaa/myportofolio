@@ -71,7 +71,10 @@
                                         </div>
                                     {% endif %}
 
-                                    <a class="education-experience-link" href="{% url 'main:show_experience' %}">
+                                    <a 
+                                        class="education-experience-link" 
+                                        href="{% url 'main:show_experience' %}{% if education.program == 'High School' %}#high-school{% else %}#university{% endif %}"
+                                    >
                                         <span>See experiences</span>
                                         <span class="education-link-arrow" aria-hidden="true">&rarr;</span>
                                     </a>
@@ -86,5 +89,11 @@
                 </div>
             </section>
         </main>
+
+        <footer class="site-footer">
+            <div class="container">
+                <p>&copy; 2026 {{ name }}. Fakultas Ilmu Komputer, Universitas Indonesia.</p>
+            </div>
+        </footer>
     </body>
 </html>
