@@ -39,10 +39,19 @@ class Education (models.Model):
     start_year = models.PositiveIntegerField()
     end_year = models.PositiveIntegerField(blank=True, null=True)
     image = models.CharField(max_length=255, blank=True)
+    skills = models.CharField(max_length=255, blank=True)
 
     def __str__(self):
-        return super().__str__()
+        return self.institution
 
     @property
     def is_current(self):
         return self.end_year is None
+
+    @property
+    def skills_list(self):
+        return [
+            skill.strip()
+            for skill in self.skills.split(",")
+            if skill.strip()
+        ]

@@ -22,7 +22,7 @@ def show_experience(request):
     context = {
         "name": "Alyssa Rahma Adjani",
         "nickname": "Alyssa",
-        "experience_list": Experience.objects.all(),
+        "experience_list": Education.objects.all(),
     }
     return render(request, "experience.html", context)
 
@@ -30,6 +30,6 @@ def show_education(request):
     context = {
         "name": "Alyssa Rahma Adjani",
         "nickname": "Alyssa",
-        "education_list": Education.objects.all(),
+        "education_list": Education.objects.order_by("-start_year"),
     }
     return render(request, "education.html", context)
