@@ -1,96 +1,101 @@
-<!DOCTYPE html>
-<html lang="en">
-    <head>
-        <meta charset="UTF-8">
-        <meta name="viewport" content="width=device-width, initial-scale=1.0">
-        <title>Experience - {{ nickname }}</title>
-        <link rel="preconnect" href="https://fonts.googleapis.com">
-        <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-        <link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@500;700&display=swap" rel="stylesheet">
-        <link rel="stylesheet" href="/static/css/style.css">
-    </head>
-    <body>
-        <header class="site-header">
-            <div class="container">
-                <a href="{% url 'main:show_main' %}" class="brand">
-                    <img class="brand-logo" src="/static/img/header-logo.png" alt="Alyssa">
-                </a>
-                <nav>
-                    <a href="{% url 'main:show_main' %}">Profile</a>
-                    <a href="{% url 'main:show_education' %}">Education</a>
-                    <a href="{% url 'main:show_experience' %}">Experience</a>
-                </nav>
-            </div>
-        </header>
-
-        <main>
-            <section class="experience-section" id="university">
-                <div class="container">
+{% extends "base.html" %}
+{% block meta %}
+<title>Experience - {{ nickname }}</title>
+{% endblock meta %}
+{% block content %}
+<main>
+    <section class="experience-section" id="university">
+        <div class="container">
+            <div class="experience-header">
+                <div class="experience-heading">
                     <p class="section-kicker">My campus journey</p>
                     <h1>University Experiences</h1>
-
-                    <div class="experience-grid">
-                        {% for experience in university_experience_list %}
-                            <article class="experience-card">
-                                <span class="experience-category">
-                                    {{ experience.get_category_display }}
-                                </span>
-                                <h2>{{ experience.title }}</h2>
-                                <p class="experience-description">
-                                    {{ experience.description }}
-                                </p>
-
-                                {% if experience.is_ongoing %}
-                                    <p class="experience-status">Ongoing</p>
-                                {% else %}
-                                    <p class="experience-status">Completed</p>
-                                {% endif %}
-                            </article>
-                        {% empty %}
-                            <p class="empty-state">
-                                No university experience has been added yet.
-                            </p>
-                        {% endfor %}
-                    </div>
                 </div>
-            </section>
 
-            <section class="experience-section" id="high-school">
-                <div class="container">
-                    <p class="section-kicker">My high school journey</p>
-                    <h1>High School Experiences</h1>
-
-                    <div class="experience-grid">
-                        {% for experience in high_school_experience_list %}
-                            <article class="experience-card">
-                                <span class="experience-category">
-                                    {{ experience.get_category_display }}
-                                </span>
-                                <h2>{{ experience.title }}</h2>
-                                <p class="experience-description">
-                                    {{ experience.description }}
-                                </p>
-
-                                {% if experience.is_ongoing %}
-                                    <p class="experience-status">Ongoing</p>
-                                {% else %}
-                                    <p class="experience-status">Completed</p>
-                                {% endif %}
-                            </article>
-                        {% empty %}
-                            <p class="empty-state">
-                                No high school experience has been added yet.
-                            </p>
-                        {% endfor %}
-                    </div>
-                </div>
-            </section>
-        </main>
-
-        <footer class="site-footer">
-            <div class="container">
-                <p>&copy; 2026 {{ name }}. Fakultas Ilmu Komputer, Universitas Indonesia.</p>
+                <a href="{% url 'main:create_experience' %}" class="button">
+                    <span aria-hidden="true">+</span>
+                    Add Experience
+                </a>
             </div>
-        </footer>
-    </body>
-</html>
+
+            <form
+                method="get"
+                action="{% url 'main:show_experience' %}"
+                class="experience-search"
+            >
+                <input
+                    type="search"
+                    name="title"
+                    value="{{ title_query }}"
+                    placeholder="Search experience by title"
+                    class="experience-search-input"
+                    aria-label="Search experience by title"
+                >
+
+                <button type="submit" class="button">
+                    Search
+                </button>
+            </form>
+
+            <div class="experience-grid">
+                {% for experience in university_experience_list %}
+                    <article class="experience-card">
+                        <span class="experience-category">
+                            {{ experience.get_category_display }}
+                        </span>
+                        <h2>{{ experience.title }}</h2>
+                        <p class="experience-description">
+                            {{ experience.description }}
+                        </p>
+
+                        {% if experience.is_ongoing %}
+                            <p class="experience-status">Ongoing</p>
+                        {% else %}
+                            <p class="experience-status">Completed</p>
+                        {% endif %}
+
+                        {% include "components/experience_delete_modal.html" %}
+                    </article>
+                {% empty %}
+                    <p class="empty-state">
+                        No university experience has been added yet.
+                    </p>
+                {% endfor %}
+            </div>
+        </div>
+    </section>
+
+    <section class="experience-section" id="high-school">
+        <div class="container">
+            <p class="section-kicker">My high school journey</p>
+            <h1>High School Experiences</h1>
+
+            <div class="experience-grid">
+                {% for experience in high_school_experience_list %}
+                    <article class="experience-card">
+                        <span class="experience-category">
+                            {{ experience.get_category_display }}
+                        </span>
+                        <h2>{{ experience.title }}</h2>
+                        <p class="experience-description">
+                            {{ experience.description }}
+                        </p>
+
+                        {% if experience.is_ongoing %}
+                            <p class="experience-status">Ongoing</p>
+                        {% else %}
+                            <p class="experience-status">Completed</p>
+                        {% endif %}
+
+                        {% include "components/experience_delete_modal.html" %}
+                    </article>
+                {% empty %}
+                    <p class="empty-state">
+                        No high school experience has been added yet.
+                    </p>
+                {% endfor %}
+            </div>
+        </div>
+    </section>
+</main>
+{% endblock content %}
