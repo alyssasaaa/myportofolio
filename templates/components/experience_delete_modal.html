@@ -1,0 +1,44 @@
+<button
+    type="button"
+    class="button button-danger"
+    popovertarget="delete-experience-{{ experience.id }}"
+>
+    Delete
+</button>
+
+<div
+    id="delete-experience-{{ experience.id }}"
+    class="experience-delete-modal"
+    popover="auto"
+>
+    <div class="experience-delete-modal-content">
+        <h2>Delete Experience?</h2>
+
+        <p>
+            Are you sure you want to delete
+            <strong>{{ experience.title }}</strong>?
+        </p>
+
+        <div class="experience-delete-modal-actions">
+            <button
+                type="button"
+                class="button button-secondary"
+                popovertarget="delete-experience-{{ experience.id }}"
+                popovertargetaction="hide"
+            >
+                Cancel
+            </button>
+
+            <form
+                method="post"
+                action="{% url 'main:delete_experience' experience.id %}"
+            >
+                {% csrf_token %}
+
+                <button type="submit" class="button button-danger">
+                    Yes, delete
+                </button>
+            </form>
+        </div>
+    </div>
+</div>

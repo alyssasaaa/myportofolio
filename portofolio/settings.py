@@ -149,3 +149,6 @@ MAILERS = {
         'BACKEND': 'django.core.mail.backends.console.EmailBackend',
     },
 }
+
+# gunakan https:// untuk trailing urlnya
+CSRF_TRUSTED_ORIGINS = ["https://alyssa-rahma-myportofolio.pws.cs.ui.ac.id/"]
