@@ -1,7 +1,7 @@
 from django.forms.models import ModelForm
-from django.forms.widgets import DateTimeInput, TextInput, Textarea, URLInput
+from django.forms.widgets import DateTimeInput, TextInput, Textarea, URLInput, DateInput
 
-from main.models import Experience
+from main.models import Competition, Experience
 
 class ExperienceForm(ModelForm):
     class Meta:
@@ -48,3 +48,60 @@ class ExperienceForm(ModelForm):
                 }
             ),
         }
+
+class CompetitionForm(ModelForm):
+    class Meta:
+        model = Competition
+
+        fields = [
+            "title",
+            "organizer",
+            "competition_type",
+            "description",
+            "competition_date",
+            "achievement",
+            "participation_type",
+            "project_url",
+            "project_image_url",
+        ]
+
+        labels = {
+            "title": "Competition Title",
+            "organizer": "Organizer",
+            "competition_type": "Competition Type",
+            "description": "Description",
+            "competition_date": "Competition Date",
+            "achievement": "Achievement",
+            "participation_type": "Participation Type",
+            "project_url": "Project URL",
+            "project_image_url": "Project Image URL",
+        }
+
+        widgets = {
+            "title": TextInput(
+                attrs={"placeholder": "Enter competition name"}
+            ),
+            "organizer": TextInput(
+                attrs={"placeholder": "Enter organizer name"}
+            ),
+            "description": Textarea(
+                attrs={
+                    "placeholder": "Describe your contribution",
+                    "rows": 3,
+                }
+            ),
+            "competition_date": DateInput(
+                format="%Y-%m-%d",
+                attrs={"type": "date"},
+            ),
+            "achievement": TextInput(
+                attrs={"placeholder": "Participant, Finalist, 1st Place"}
+            ),
+            "project_url": URLInput(
+                attrs={"placeholder": "https://example.com/project"}
+            ),
+            "project_image_url": URLInput(
+                attrs={"placeholder": "https://example.com/image.png"}
+            ),
+        }
+        

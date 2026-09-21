@@ -1,0 +1,139 @@
+{% extends "base.html" %}
+{% block meta %}
+<title>Competition - {{ nickname }}</title>
+{% endblock meta %}
+{% block content %}
+<main>
+    <section class="competition-section">
+        <div class="container">
+            <div class="competition-header">
+                <div>
+                    <p class="section-kicker">Challenges and achievements</p>
+                    <h1>Competitions</h1>
+                </div>
+
+                <a href="{% url 'main:create_competition' %}" class="button">
+                    <span aria-hidden="true">+</span>
+                    Add Competition
+                </a>
+            </div>
+
+            {% for message in messages %}
+                <p class="competition-message" role="status">
+                    {{ message }}
+                </p>
+            {% endfor %}
+
+            <form
+                method="get"
+                action="{% url 'main:show_competition' %}"
+                class="competition-search"
+            >
+                <input
+                    type="search"
+                    name="title"
+                    value="{{ title_query }}"
+                    placeholder="Search competition by title"
+                    aria-label="Search competition by title"
+                >
+                <button type="submit" class="button">Search</button>
+
+                {% if title_query %}
+                    <a
+                        href="{% url 'main:show_competition' %}"
+                        class="button button-secondary"
+                    >
+                        Clear
+                    </a>
+                {% endif %}
+            </form>
+
+            <div class="competition-grid">
+                {% for competition in competition_list %}
+                    <article class="competition-card">
+                        {% if competition.project_image_url %}
+                            <img
+                                class="competition-image"
+                                src="{{ competition.project_image_url }}"
+                                alt="Project for {{ competition.title }}"
+                                loading="lazy"
+                            >
+                        {% endif %}
+
+                        <div class="competition-card-body">
+                            <div class="competition-tags">
+                                <span class="competition-tag">
+                                    {{ competition.get_competition_type_display }}
+                                </span>
+                                <span class="competition-tag competition-tag-neutral">
+                                    {{ competition.get_participation_type_display }}
+                                </span>
+                            </div>
+
+                            <h2>{{ competition.title }}</h2>
+
+                            <p class="competition-organizer">
+                                {{ competition.organizer }}
+                            </p>
+
+                            <time
+                                class="competition-date"
+                                datetime="{{ competition.competition_date|date:'Y-m-d' }}"
+                            >
+                                {{ competition.competition_date|date:"j F Y" }}
+                            </time>
+
+                            <div class="competition-description">
+                                {{ competition.description|linebreaksbr }}
+                            </div>
+
+                            <div class="competition-achievement">
+                                <span>Achievement</span>
+                                <strong>{{ competition.achievement }}</strong>
+                            </div>
+
+                            <div class="competition-actions">
+                                {% if competition.project_url %}
+                                    <a
+                                        href="{{ competition.project_url }}"
+                                        class="button button-secondary"
+                                        target="_blank"
+                                        rel="noopener noreferrer"
+                                    >
+                                        View Project
+                                        <span aria-hidden="true">↗</span>
+                                    </a>
+                                {% endif %}
+
+                                <form
+                                    method="post"
+                                    action="{% url 'main:delete_competition' competition.id %}"
+                                    onsubmit="return confirm('Delete this competition? This cannot be undone.');"
+                                >
+                                    {% csrf_token %}
+                                    <button
+                                        type="submit"
+                                        class="button competition-delete"
+                                        aria-label="Delete {{ competition.title }}"
+                                    >
+                                        Delete
+                                    </button>
+                                </form>
+                            </div>
+                        </div>
+                    </article>
+                {% empty %}
+                    <p class="competition-empty">
+                        {% if title_query %}
+                            No competitions match “{{ title_query }}”.
+                        {% else %}
+                            No competitions added yet.
+                            Use Add Competition to share your first experience.
+                        {% endif %}
+                    </p>
+                {% endfor %}
+            </div>
+        </div>
+    </section>
+</main>
+{% endblock content %}
