@@ -16,8 +16,8 @@ class Experience(models.Model):
     ]
 
     STAGE_CHOICES = [
-            ("university", "University"),
-            ("high-school", "High School"),
+        ("university", "University"),
+        ("high-school", "High School"),
     ]
 
     id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
@@ -44,7 +44,7 @@ class Experience(models.Model):
     def is_ongoing(self):
         return self.ended_at is None
 
-class Education (models.Model):
+class Education(models.Model):
     institution = models.CharField(max_length=255)
     program = models.CharField(max_length=255)
     description = models.TextField()
@@ -67,3 +67,28 @@ class Education (models.Model):
             for skill in self.skills.split(",")
             if skill.strip()
         ]
+
+class Competition(models.Model):
+    COMPETITION_TYPE = [
+        ("hackathon", "Hackathon"),
+        ("data competition", "Data Competition"),
+        ("ui/ux", "UI/UX"),
+    ]
+    PARTICIPATION_TYPE = [
+        ("individual", "Individual"),
+        ("group", "Group"),
+    ]
+    id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
+    title = models.CharField(max_length=255)
+    organizer = models.CharField(max_length=255)
+    competition_type = models.CharField(max_length=30, choices=COMPETITION_TYPE)
+    description = models.TextField()
+    competition_date = models.DateField()
+    achievement = models.CharField(max_length=255)
+    participation_type = models.CharField(max_length=10, choices=PARTICIPATION_TYPE, default="individual")
+    created_at = models.DateTimeField(auto_now_add=True)
+    project_url = models.URLField(blank=True)
+    project_image_url = models.URLField(blank=True, max_length=500)
+
+    def __str__(self):
+        return self.title

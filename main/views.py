@@ -1,7 +1,7 @@
 from django.shortcuts import render
 
-from main.forms import ExperienceForm
-from main.models import Education, Experience
+from main.forms import CompetitionForm, ExperienceForm
+from main.models import Education, Experience, Competition
 from django.contrib import messages
 from django.core import serializers
 from django.http import HttpResponse
@@ -105,3 +105,61 @@ def delete_experience(request, experience_id):
         )
 
     return redirect("main:show_experience")
+
+def create_competition(request):
+    form = CompetitionForm(request.POST or None)
+
+    if request.method == "POST" and form.is_valid():
+        form.save()
+        messages.success(request, "New competition was successfully added!")
+        return redirect("main:show_competition")
+
+    context = {
+        "name": "Alyssa Rahma Adjani",
+        "nickname": "Alyssa",
+        "form": form,
+    }
+    return render(request, "competition_form.html", context)
+
+def get_competitions_json(request):
+    title_query = request.GET.get("title", "").strip()
+
+    competitions = Competition.objects.order_by(
+        "-competition_date",
+        "-created_at",
+    )
+
+    if title_query:
+        competitions = competitions.filter(title__icontains=title_query)
+
+    competitions_json = serializers.serialize("json", competitions)
+
+    return HttpResponse(competitions_json, content_type="application/json")
+
+def show_competition(request):
+    json_response = get_competitions_json(request)
+    deserialized_competitions = serializers.deserialize("json", json_response.content.decode("utf-8"))
+
+    competitions = [item.object for item in deserialized_competitions]
+    context = {
+        "name": "Alyssa Rahma Adjani",
+        "nickname": "Alyssa",
+        "competition_list": competitions,
+        "title_query": request.GET.get("title", "").strip(),
+    }
+    return render(request, "competition.html", context)
+
+def delete_competition(request, competition_id):
+    competition = get_object_or_404(
+        Competition,
+        pk=competition_id,
+    )
+
+    if request.method == "POST":
+        competition.delete()
+        messages.success(
+            request,
+            "Competition was successfully deleted!",
+        )
+
+    return redirect("main:show_competition")

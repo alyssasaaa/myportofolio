@@ -1,99 +1,73 @@
+{% extends "base.html" %}
 {% load static %}
-<!DOCTYPE html>
-<html lang="en">
-    <head>
-        <meta charset="UTF-8">
-        <meta name="viewport" content="width=device-width, initial-scale=1.0">
-        <title>Education - {{ nickname }}</title>
-        <link rel="preconnect" href="https://fonts.googleapis.com">
-        <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-        <link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@500;700&display=swap" rel="stylesheet">
-        <link rel="stylesheet" href="{% static 'css/style.css' %}?v=2">
-    </head>
-    <body>
-       <header class="site-header">
-            <div class="container">
-                <a href="{% url 'main:show_main' %}" class="brand">
-                    <img class="brand-logo" src="/static/img/header-logo.png" alt="Alyssa">
-                </a>
-                <nav>
-                    <a href="{% url 'main:show_main' %}">Profile</a>
-                    <a href="{% url 'main:show_education' %}">Education</a>
-                    <a href="{% url 'main:show_experience' %}">Experience</a>
-                </nav>
-            </div>
-        </header>
+{% block meta %}
+<title>Education - {{ nickname }}</title>
+{% endblock meta %}
 
-        <main>
-            <section class="education" id="education">
-                <div class="container">
-                    <p class="section-kicker">Academic Journey</p>
-                    <h1>Education</h1>
+{% block content %}
+<main>
+    <section class="education" id="education">
+        <div class="container">
+            <p class="section-kicker">Academic Journey</p>
+            <h1>Education</h1>
 
-                    <div class="education-grid">
-                        {% for education in education_list %}
-                            <article class="education-card">
-                                {% if education.image %}
-                                    <img 
-                                        class="{% if education.program == 'High School' %}sma-illustration{% else %}uni-illustration{% endif %}"
-                                        src="{% static education.image %}" 
-                                        alt="Illustration of {{ nickname }}"
-                                    >
+            <div class="education-grid">
+                {% for education in education_list %}
+                    <article class="education-card">
+                        {% if education.image %}
+                            <img 
+                                class="{% if education.program == 'High School' %}sma-illustration{% else %}uni-illustration{% endif %}"
+                                src="{% static education.image %}" 
+                                alt="Illustration of {{ nickname }}"
+                            >
+                        {% endif %}
+
+                        <div class="education-copy">
+                            <p class="education-year">
+                                {{ education.start_year }} –
+                                {% if education.is_current %}
+                                    present
+                                {% else %}
+                                    {{ education.end_year }}
                                 {% endif %}
-
-                                <div class="education-copy">
-                                    <p class="education-year">
-                                        {{ education.start_year }} –
-                                        {% if education.is_current %}
-                                            present
-                                        {% else %}
-                                            {{ education.end_year }}
-                                        {% endif %}
-                                    </p>
-
-                                    <h2>{{ education.institution }}</h2>
-                                    <h3>{{ education.program }}</h3>
-                                    <p class="education-description">
-                                        {{ education.description }}
-                                    </p>
-
-                                    {% if education.skills_list %}
-                                        <div class="education-skills">
-                                            <h4 class="education-skills-label">Skills</h4>
-
-                                            <div class="education-skill-list">
-                                                {% for skill in education.skills_list %}
-                                                    <span class="education-skill">
-                                                        {{ skill }}
-                                                    </span>
-                                                {% endfor %}
-                                            </div>
-                                        </div>
-                                    {% endif %}
-
-                                    <a 
-                                        class="education-experience-link" 
-                                        href="{% url 'main:show_experience' %}{% if education.program == 'High School' %}#high-school{% else %}#university{% endif %}"
-                                    >
-                                        <span>See experiences</span>
-                                        <span class="education-link-arrow" aria-hidden="true">&rarr;</span>
-                                    </a>
-                                </div>
-                            </article>
-                        {% empty %}
-                            <p class="empty-state">
-                                No education has been added yet.
                             </p>
-                        {% endfor %}
-                    </div>
-                </div>
-            </section>
-        </main>
 
-        <footer class="site-footer">
-            <div class="container">
-                <p>&copy; 2026 {{ name }}. Fakultas Ilmu Komputer, Universitas Indonesia.</p>
+                            <h2>{{ education.institution }}</h2>
+                            <h3>{{ education.program }}</h3>
+                            <p class="education-description">
+                                {{ education.description }}
+                            </p>
+
+                            {% if education.skills_list %}
+                                <div class="education-skills">
+                                    <h4 class="education-skills-label">Skills</h4>
+
+                                    <div class="education-skill-list">
+                                        {% for skill in education.skills_list %}
+                                            <span class="education-skill">
+                                                {{ skill }}
+                                            </span>
+                                        {% endfor %}
+                                    </div>
+                                </div>
+                            {% endif %}
+
+                            <a 
+                                class="education-experience-link" 
+                                href="{% url 'main:show_experience' %}{% if education.program == 'High School' %}#high-school{% else %}#university{% endif %}"
+                            >
+                                <span>See experiences</span>
+                                <span class="education-link-arrow" aria-hidden="true">&rarr;</span>
+                            </a>
+                        </div>
+                    </article>
+                {% empty %}
+                    <p class="empty-state">
+                        No education has been added yet.
+                    </p>
+                {% endfor %}
             </div>
-        </footer>
-    </body>
-</html>
+        </div>
+    </section>
+</main>
+{% endblock content %}
