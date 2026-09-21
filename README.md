@@ -47,3 +47,13 @@ WORKING STRATEGY
     - Add organizations and committee into categories
     - Add experiences through Django shell
 3. I used Codex AI mainly to understand & asked for the confirmation of the MVT flow, models, migrations, diagnose errors, get suggestion for the CSS layout & styles, and the unit tests making. I reviewed the suggestions and implemented the changes the AI suggest manually based on my own portfolio design.
+
+### Assignment 3
+
+1. 
+
+WORKING STRATEGY
+1. Refactor Education page (refactor education.html)
+2. Add Competition page, add competition model, applied makemigrations migrate, add competition form, update url update views update forms, etc.
+3. Update style.css 
+4. I used Codex AI to help me debug my codes because earlier I failed to do makemigrations and migrate. Also it helps me to do my style css and guide me to make edit options for the competition page

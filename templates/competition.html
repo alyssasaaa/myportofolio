@@ -95,7 +95,13 @@
                                         <span aria-hidden="true">↗</span>
                                     </a>
                                 {% endif %}
-
+                                
+                                <a
+                                    href="{% url 'main:update_competition' competition.id %}"
+                                    class="button competition-edit"
+                                >
+                                    Edit
+                                </a>
                                 <form
                                     method="post"
                                     action="{% url 'main:delete_competition' competition.id %}"
