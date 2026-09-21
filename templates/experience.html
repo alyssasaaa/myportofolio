@@ -52,7 +52,16 @@
                             <p class="experience-status">Completed</p>
                         {% endif %}
 
-                        {% include "components/experience_delete_modal.html" %}
+                        <div class="experience-card-actions">
+                            <a
+                                href="{% url 'main:update_experience' experience.id %}"
+                                class="button experience-edit"
+                            >
+                                Edit
+                            </a>
+
+                            {% include "components/experience_delete_modal.html" %}
+                        </div>
                     </article>
                 {% empty %}
                     <p class="empty-state">
@@ -85,7 +94,16 @@
                             <p class="experience-status">Completed</p>
                         {% endif %}
 
-                        {% include "components/experience_delete_modal.html" %}
+                        <div class="experience-card-actions">
+                            <a
+                                href="{% url 'main:update_experience' experience.id %}"
+                                class="button experience-edit"
+                            >
+                                Edit
+                            </a>
+
+                            {% include "components/experience_delete_modal.html" %}
+                        </div>
                     </article>
                 {% empty %}
                     <p class="empty-state">

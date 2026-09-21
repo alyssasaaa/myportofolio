@@ -121,6 +121,30 @@ def create_competition(request):
     }
     return render(request, "competition_form.html", context)
 
+def update_experience(request, experience_id):
+    experience = get_object_or_404(
+        Experience,
+        pk=experience_id,
+    )
+
+    form = ExperienceForm(
+        request.POST if request.method == "POST" else None,
+        instance=experience,
+    )
+
+    if request.method == "POST" and form.is_valid():
+        form.save()
+        messages.success(request, "Experience was successfully updated!")
+        return redirect("main:show_experience")
+
+    context = {
+        "name": "Alyssa Rahma Adjani",
+        "nickname": "Alyssa",
+        "form": form,
+        "is_edit": True,
+    }
+    return render(request, "experience_form.html", context)
+
 def get_competitions_json(request):
     title_query = request.GET.get("title", "").strip()
 
@@ -163,3 +187,28 @@ def delete_competition(request, competition_id):
         )
 
     return redirect("main:show_competition")
+
+def update_competition(request, competition_id):
+    competition = get_object_or_404(
+        Competition,
+        pk=competition_id,
+    )
+
+    form = CompetitionForm(
+        request.POST if request.method == "POST" else None,
+        instance=competition,
+    )
+
+    if request.method == "POST" and form.is_valid():
+        form.save()
+        messages.success(request, "Competition was successfully updated!")
+        return redirect("main:show_competition")
+
+    context = {
+        "name": "Alyssa Rahma Adjani",
+        "nickname": "Alyssa",
+        "form": form,
+        "is_edit": True,
+    }
+
+    return render(request, "competition_form.html", context)
