@@ -7,7 +7,7 @@
     <section class="competition-section">
         <div class="container">
             <div class="competition-header">
-                <div>
+                <div class="competition-heading">
                     <p class="section-kicker">Challenges and achievements</p>
                     <h1>Competitions</h1>
                 </div>
@@ -17,12 +17,6 @@
                     Add Competition
                 </a>
             </div>
-
-            {% for message in messages %}
-                <p class="competition-message" role="status">
-                    {{ message }}
-                </p>
-            {% endfor %}
 
             <form
                 method="get"
@@ -39,10 +33,7 @@
                 <button type="submit" class="button">Search</button>
 
                 {% if title_query %}
-                    <a
-                        href="{% url 'main:show_competition' %}"
-                        class="button button-secondary"
-                    >
+                    <a href="{% url 'main:show_competition' %}" class="button button-secondary">
                         Clear
                     </a>
                 {% endif %}
