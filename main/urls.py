@@ -16,7 +16,7 @@ urlpatterns = [
     path("api/experiences/", get_experiences_json, name="get_experiences_json"),
     path("experience/<uuid:experience_id>/delete/", delete_experience, name="delete_experience"),
     path("competition/", show_competition, name="show_competition"),
-    path("competition/add", create_competition, name="create_competition"),
+    path("competition/add/", create_competition, name="create_competition"),
     path("api/competitions/", get_competitions_json, name="get_competitions_json"),
     path("competition/<uuid:competition_id>/delete/", delete_competition, name="delete_competition"),
 ]
