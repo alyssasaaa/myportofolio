@@ -50,7 +50,11 @@ WORKING STRATEGY
 
 ### Assignment 3
 
-1. 
+1. We use Django's ModelForm because it generates form fields based on our model and handles validation. This makes our work easier because we don't need to write every HTML input manually, and we can save valid data using form.save(). We add {% csrf_token %} to internal POST forms to help protect against CSRF, where another website tries to submit unwanted requests using our logged-in session.
+
+2. JSON's syntax is minimal, so it is easier to read and work with. It also works naturally with JavaScript objects and arrays, making data exchange between the server and browser more convenient. XML is still useful, but it uses opening and closing tags, which make the same data longer.
+
+3. I am using competition as the example. When a user opens /api/competitions/, Django calls get_competitions_json(). This view retrieves the Competition records, filters them by title if a search is provided, and converts them into JSON using serializers.serialize(). It then returns the JSON through an HttpResponse. We need serialization because Django model objects cannot be sent directly as JSON. For my Competition page, show_competition() takes this JSON response, converts it back into model objects through deserialization, and sends the data to competition.html to display as cards.
 
 WORKING STRATEGY
 1. Refactor Education page (refactor education.html)
