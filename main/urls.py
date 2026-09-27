@@ -1,7 +1,7 @@
 from django.urls import path
 
 from main.views import (
-    show_main, show_education,
+    login_user, logout_user, register, show_main, show_education,
     create_experience, show_experience, get_experiences_json, delete_experience, update_experience,
     create_competition, show_competition, get_competitions_json, delete_competition, update_competition,
 )
@@ -21,4 +21,7 @@ urlpatterns = [
     path("api/competitions/", get_competitions_json, name="get_competitions_json"),
     path("competition/<uuid:competition_id>/delete/", delete_competition, name="delete_competition"),
     path("competition/<uuid:competition_id>/edit/", update_competition, name="update_competition"),
+    path("register/", register, name="register"),
+    path("login/", login_user, name="login"),
+    path("logout/", logout_user, name="logout"),
 ]
