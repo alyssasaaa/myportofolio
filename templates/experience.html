@@ -12,10 +12,12 @@
                     <h1>University Experiences</h1>
                 </div>
 
-                <a href="{% url 'main:create_experience' %}" class="button">
-                    <span aria-hidden="true">+</span>
-                    Add Experience
-                </a>
+                {% if user.is_superuser %}  {# Add this line #}
+                    <a href="{% url 'main:create_experience' %}" class="button">
+                        <span aria-hidden="true">+</span>
+                        Add Experience
+                    </a>
+                {% endif %}                 {# Add this line #}
             </div>
 
             <form

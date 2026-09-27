@@ -8,6 +8,9 @@ from django.contrib.auth.forms import AuthenticationForm, UserCreationForm
 from django.core import serializers
 from django.http import HttpResponse
 from django.shortcuts import get_object_or_404, redirect, render
+import datetime
+from django.contrib.auth.decorators import login_required  
+from django.core.exceptions import PermissionDenied        
 
 # Create your views here.
 def show_main(request):
@@ -66,7 +69,14 @@ def show_education(request):
     }
     return render(request, "education.html", context)
 
+@login_required(login_url="/login/")
 def create_experience(request):
+    # These two lines are what you add in this step.
+    # Check whether the logged-in account is the superuser (admin/you);
+    # if it is not, stop the request with a 403.
+    if not request.user.is_superuser:
+        raise PermissionDenied
+    
     form = ExperienceForm(request.POST or None)
 
     if request.method == "POST" and form.is_valid():
@@ -89,11 +99,18 @@ def get_experiences_json(request):
     if title_query:
         experiences = experiences.filter(title__icontains=title_query)
 
-    experiences_json = serializers.serialize("json", experiences)
+    experiences_json = serializers.serialize("json", experiences, use_natural_foreign_keys=True)
 
     return HttpResponse(experiences_json, content_type="application/json")
 
+@login_required(login_url="/login/")
 def delete_experience(request, experience_id):
+    # These two lines are what you add in this step.
+    # Check whether the logged-in account is the superuser (admin/you);
+    # if it is not, stop the request with a 403.
+    if not request.user.is_superuser:
+        raise PermissionDenied
+    
     experience = get_object_or_404(
         Experience,
         pk=experience_id,
@@ -248,3 +265,55 @@ def login_user(request):
 def logout_user(request):
     logout(request)
     return redirect("main:show_main")
+
+def login_user(request):
+    form = AuthenticationForm(request, data=request.POST or None)
+
+    if request.method == "POST" and form.is_valid():
+        user = form.get_user()
+        login(request, user)
+        response = redirect("main:show_main")
+        response.set_cookie('last_login', datetime.datetime.now().strftime('%Y-%m-%d %H:%M:%S'))
+        return response
+
+    context = {
+                "name": "Alyssa Rahma Adjani",
+                "nickname": "Alyssa",
+                "form": form,
+    }
+    return render(request, "login.html", context)
+
+def show_main(request):
+    last_login = request.COOKIES.get('last_login', 'No active login session / Cookie not found')
+    context = {
+        "name": "Burhan",
+        "npm": "2206000000",
+        "study_program": "S1 Ilmu Komputer",
+        "bio": (
+            "Mahasiswa Ilmu Komputer Universitas Indonesia yang tertarik "
+            "pada pengembangan perangkat lunak dan pendidikan."
+        ),
+        "last_login": last_login,
+    }
+    return render(request, "index.html", context)
+
+def logout_user(request):
+    logout(request)
+    response = redirect("main:show_main")
+    response.delete_cookie('last_login')
+    return response
+
+# No is_superuser check: any logged-in account may give a star
+@login_required(login_url="/login/")
+def toggle_star(request, experience_id):
+    experience = get_object_or_404(Experience, pk=experience_id)
+
+    if request.method == "POST":
+        # If this account has already starred it, remove the star.
+        # If not, add one.
+        if request.user in experience.starred_by.all():
+            experience.starred_by.remove(request.user)
+        else:
+            experience.starred_by.add(request.user)
+
+    return redirect("main:show_experiences")
