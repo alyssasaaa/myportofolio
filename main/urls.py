@@ -2,7 +2,7 @@ from django.urls import path
 
 from main.views import (
     login_user, logout_user, register, show_main, show_education,
-    create_experience, show_experience, get_experiences_json, delete_experience, update_experience,
+    create_experience, show_experience, get_experiences_json, delete_experience, toggle_star, update_experience,
     create_competition, show_competition, get_competitions_json, delete_competition, update_competition,
 )
 
@@ -24,4 +24,5 @@ urlpatterns = [
     path("register/", register, name="register"),
     path("login/", login_user, name="login"),
     path("logout/", logout_user, name="logout"),
+    path("experiences/<uuid:experience_id>/star/", toggle_star, name="toggle_star"),
 ]
