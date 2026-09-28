@@ -1,0 +1,50 @@
+{% include "components/competition_star.html" with competition=competition %}
+{% if user.is_superuser %} 
+    <button
+        type="button"
+        class="button competition-delete"
+        popovertarget="delete-competition-{{ competition.id }}"
+    >
+        Delete
+    </button>
+{% endif %}   
+
+<div
+    id="delete-competition-{{ competition.id }}"
+    class="experience-delete-modal"
+    popover="auto"
+>
+    <div class="experience-delete-modal-content">
+        <h2>Delete Competition?</h2>
+
+        <p>
+            Are you sure you want to delete
+            <strong>{{ competition.title }}</strong>?
+        </p>
+
+        <div class="experience-delete-modal-actions">
+            <button
+                type="button"
+                class="button button-secondary"
+                popovertarget="delete-competition-{{ competition.id }}"
+                popovertargetaction="hide"
+            >
+                Cancel
+            </button>
+
+            <form
+                method="post"
+                action="{% url 'main:delete_competition' competition.id %}"
+            >
+                {% csrf_token %}
+
+                <button
+                    type="submit"
+                    class="button competition-delete"
+                >
+                    Yes, delete
+                </button>
+            </form>
+        </div>
+    </div>
+</div>
