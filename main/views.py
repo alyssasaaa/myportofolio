@@ -14,6 +14,8 @@ from django.core.exceptions import PermissionDenied
 
 # Create your views here.
 def show_main(request):
+    last_login = request.COOKIES.get('last_login', 'No active login session / Cookie not found')
+
     context = {
         "name": "Alyssa Rahma Adjani",
         "nickname": "Alyssa",
@@ -58,6 +60,10 @@ def show_experience(request):
         "university_experience_list": university_experiences,
         "high_school_experience_list": high_school_experiences,
         "title_query": title_query,
+        "is_editor": (
+                    request.user.is_authenticated 
+                    and request.user.groups.filter(name="Editor").exists()
+        ),
     }
     return render(request, "experience.html", context)
 
@@ -144,7 +150,13 @@ def create_competition(request):
     }
     return render(request, "competition_form.html", context)
 
+@login_required(login_url="/login/")
 def update_experience(request, experience_id):
+    is_editor = request.user.groups.filter(name="Editor").exists()
+
+    if not (request.user.is_superuser or is_editor):
+        raise PermissionDenied
+    
     experience = get_object_or_404(
         Experience,
         pk=experience_id,
@@ -179,7 +191,7 @@ def get_competitions_json(request):
     if title_query:
         competitions = competitions.filter(title__icontains=title_query)
 
-    competitions_json = serializers.serialize("json", competitions)
+    competitions_json = serializers.serialize("json", competitions, use_natural_foreign_keys=True)
 
     return HttpResponse(competitions_json, content_type="application/json")
 
@@ -193,6 +205,10 @@ def show_competition(request):
         "nickname": "Alyssa",
         "competition_list": competitions,
         "title_query": request.GET.get("title", "").strip(),
+        "is_editor": (
+            request.user.is_authenticated 
+            and request.user.groups.filter(name="Editor").exists()
+        ),
     }
     return render(request, "competition.html", context)
 
@@ -215,7 +231,13 @@ def delete_competition(request, competition_id):
 
     return redirect("main:show_competition")
 
+@login_required(login_url="/login/")
 def update_competition(request, competition_id):
+    is_editor = request.user.groups.filter(name="Editor").exists()
+
+    if not (request.user.is_superuser or is_editor):
+        raise PermissionDenied
+    
     competition = get_object_or_404(
         Competition,
         pk=competition_id,
@@ -290,20 +312,6 @@ def login_user(request):
                 "form": form,
     }
     return render(request, "login.html", context)
-
-def show_main(request):
-    last_login = request.COOKIES.get('last_login', 'No active login session / Cookie not found')
-    context = {
-        "name": "Burhan",
-        "npm": "2206000000",
-        "study_program": "S1 Ilmu Komputer",
-        "bio": (
-            "Mahasiswa Ilmu Komputer Universitas Indonesia yang tertarik "
-            "pada pengembangan perangkat lunak dan pendidikan."
-        ),
-        "last_login": last_login,
-    }
-    return render(request, "index.html", context)
 
 def logout_user(request):
     logout(request)

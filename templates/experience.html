@@ -55,12 +55,14 @@
                         {% endif %}
 
                         <div class="experience-card-actions">
-                            <a
-                                href="{% url 'main:update_experience' experience.id %}"
-                                class="button experience-edit"
-                            >
-                                Edit
-                            </a>
+                            {% if user.is_superuser or is_editor %}
+                                <a
+                                    href="{% url 'main:update_experience' experience.id %}"
+                                    class="button experience-edit"
+                                >
+                                    Edit
+                                </a>
+                            {% endif %}
 
                             {% include "components/experience_star.html" with experience=experience %}
                             
@@ -101,12 +103,14 @@
                         {% endif %}
 
                         <div class="experience-card-actions">
-                            <a
-                                href="{% url 'main:update_experience' experience.id %}"
-                                class="button experience-edit"
-                            >
-                                Edit
-                            </a>
+                            {% if user.is_superuser or is_editor %}
+                                <a
+                                    href="{% url 'main:update_experience' experience.id %}"
+                                    class="button experience-edit"
+                                >
+                                    Edit
+                                </a>
+                            {% endif %}
                             
                             {% include "components/experience_star.html" with experience=experience %}
 
