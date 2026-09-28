@@ -12,10 +12,12 @@
                     <h1>Competitions</h1>
                 </div>
 
-                <a href="{% url 'main:create_competition' %}" class="button">
-                    <span aria-hidden="true">+</span>
-                    Add Competition
-                </a>
+                {% if user.is_superuser %}
+                    <a href="{% url 'main:create_competition' %}" class="button">
+                        <span aria-hidden="true">+</span>
+                        Add Competition
+                    </a>
+                {% endif %}
             </div>
 
             <form
@@ -102,20 +104,12 @@
                                 >
                                     Edit
                                 </a>
-                                <form
-                                    method="post"
-                                    action="{% url 'main:delete_competition' competition.id %}"
-                                    onsubmit="return confirm('Delete this competition? This cannot be undone.');"
-                                >
-                                    {% csrf_token %}
-                                    <button
-                                        type="submit"
-                                        class="button competition-delete"
-                                        aria-label="Delete {{ competition.title }}"
-                                    >
-                                        Delete
-                                    </button>
-                                </form>
+
+                                {% include "components/competition_star.html" with competition=competition %}
+
+                                {% if user.is_superuser %}
+                                    {% include "components/competition_delete_modal.html" with competition=competition %}
+                                {% endif %}
                             </div>
                         </div>
                     </article>

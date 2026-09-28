@@ -125,7 +125,11 @@ def delete_experience(request, experience_id):
 
     return redirect("main:show_experience")
 
+@login_required(login_url="/login/")
 def create_competition(request):
+    if not request.user.is_superuser:
+        raise PermissionDenied
+    
     form = CompetitionForm(request.POST or None)
 
     if request.method == "POST" and form.is_valid():
@@ -192,7 +196,11 @@ def show_competition(request):
     }
     return render(request, "competition.html", context)
 
+@login_required(login_url="/login/")
 def delete_competition(request, competition_id):
+    if not request.user.is_superuser:
+        raise PermissionDenied
+    
     competition = get_object_or_404(
         Competition,
         pk=competition_id,
@@ -316,4 +324,21 @@ def toggle_star(request, experience_id):
         else:
             experience.starred_by.add(request.user)
 
-    return redirect("main:show_experiences")
+    return redirect("main:show_experience")
+
+# ================== ASSIGNMENT 4 ==================
+# Add login required for the competition section
+# No is_superuser check: any logged-in account may give a star
+@login_required(login_url="/login/")
+def toggle_competitiion_star(request, competition_id):
+    competition = get_object_or_404(Competition, pk=competition_id)
+
+    if request.method == "POST":
+        # If this account has already starred it, remove the star.
+        # If not, add one.
+        if request.user in competition.starred_by.all():
+            competition.starred_by.remove(request.user)
+        else:
+            competition.starred_by.add(request.user)
+
+    return redirect("main:show_competition")

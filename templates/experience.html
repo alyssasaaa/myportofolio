@@ -62,7 +62,11 @@
                                 Edit
                             </a>
 
-                            {% include "components/experience_delete_modal.html" %}
+                            {% include "components/experience_star.html" with experience=experience %}
+                            
+                            {% if user.is_superuser %}
+                                {% include "components/experience_delete_modal.html" %}
+                            {% endif %}  
                         </div>
                     </article>
                 {% empty %}
@@ -103,8 +107,12 @@
                             >
                                 Edit
                             </a>
+                            
+                            {% include "components/experience_star.html" with experience=experience %}
 
-                            {% include "components/experience_delete_modal.html" %}
+                            {% if user.is_superuser %}
+                                {% include "components/experience_delete_modal.html" %}
+                            {% endif %}
                         </div>
                     </article>
                 {% empty %}
