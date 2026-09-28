@@ -98,12 +98,14 @@
                                     </a>
                                 {% endif %}
                                 
-                                <a
-                                    href="{% url 'main:update_competition' competition.id %}"
-                                    class="button competition-edit"
-                                >
-                                    Edit
-                                </a>
+                                {% if user.is_superuser or is_editor %}
+                                    <a
+                                        href="{% url 'main:update_competition' competition.id %}"
+                                        class="button competition-edit"
+                                    >
+                                        Edit
+                                    </a>
+                                {% endif %}
 
                                 {% include "components/competition_star.html" with competition=competition %}
 
