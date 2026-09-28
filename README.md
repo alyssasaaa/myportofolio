@@ -61,3 +61,12 @@ WORKING STRATEGY
 2. Add Competition page, add competition model, applied makemigrations migrate, add competition form, update url update views update forms, etc.
 3. Update style.css 
 4. I used Codex AI to help me debug my codes because earlier I failed to do makemigrations and migrate. Also it helps me to do my style css and guide me to make edit options for the competition page
+
+### Assignment 4
+AI DISCLOSURE:
+I used Codex AI mainly to help debug errors and understand how to set up the Editor role using Django Groups. I also asked for help checking access restrictions in my views and showing buttons based on user roles. I reviewed the suggestions and applied the changes manually.
+
+Doksli prompts:
+"/copy paste error/ aku salah apa"
+"okay now help me to check the role management adn access control implemeent the editor role using django group or permission..... where and what to start"
+“have i completed all the requirements for assignment 4?”
