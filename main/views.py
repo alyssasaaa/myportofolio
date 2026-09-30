@@ -6,11 +6,13 @@ from django.contrib import messages
 from django.contrib.auth import login, logout
 from django.contrib.auth.forms import AuthenticationForm, UserCreationForm
 from django.core import serializers
-from django.http import HttpResponse
+from django.http import HttpResponse, JsonResponse
 from django.shortcuts import get_object_or_404, redirect, render
 import datetime
 from django.contrib.auth.decorators import login_required  
-from django.core.exceptions import PermissionDenied        
+from django.core.exceptions import PermissionDenied 
+from django.views.decorators.http import require_POST
+
 
 # Create your views here.
 def show_main(request):
@@ -31,39 +33,16 @@ def show_main(request):
 
 
 def show_experience(request):
-    json_response = get_experiences_json(request)
-
-    deserialized_experiences = serializers.deserialize(
-        "json",
-        json_response.content.decode("utf-8"),
-    )
-    experiences = [
-        item.object
-        for item in deserialized_experiences
-    ]
-
     title_query = request.GET.get("title", "").strip()
-
-    university_experiences = [
-        experience
-        for experience in experiences
-        if experience.stage == "university"
-    ]
-    high_school_experiences = [
-        experience
-        for experience in experiences
-        if experience.stage == "high-school"
-    ]
     context = {
         "name": "Alyssa Rahma Adjani",
         "nickname": "Alyssa",
-        "university_experience_list": university_experiences,
-        "high_school_experience_list": high_school_experiences,
         "title_query": title_query,
         "is_editor": (
                     request.user.is_authenticated 
                     and request.user.groups.filter(name="Editor").exists()
         ),
+        "form": ExperienceForm(),
     }
     return render(request, "experience.html", context)
 
@@ -98,16 +77,39 @@ def create_experience(request):
 
     return render(request, "experience_form.html", context)
 
+# TUTORIAL 05
 def get_experiences_json(request):
     title_query = request.GET.get("title", "").strip()
-    experiences = Experience.objects.all()
+    experiences = Experience.objects.prefetch_related('starred_by').all()
 
     if title_query:
         experiences = experiences.filter(title__icontains=title_query)
 
-    experiences_json = serializers.serialize("json", experiences, use_natural_foreign_keys=True)
+    # Manually build the JSON data so we can add the Star logic
+    data = []
+    for experience in experiences:
+        starred_users = experience.starred_by.all()
+        is_starred = request.user in starred_users if request.user.is_authenticated else False
+        starred_by_names = ", ".join([u.username for u in starred_users])
 
-    return HttpResponse(experiences_json, content_type="application/json")
+        data.append({
+            "pk": str(experience.id),
+            "fields": {
+                "title": experience.title,
+                "description": experience.description,
+                "category": experience.category,
+                "category_display": experience.get_category_display(),
+                "stage": experience.stage,
+                "thumbnail": experience.thumbnail,
+                "started_at": experience.started_at,
+                "ended_at": experience.ended_at,
+                "is_ongoing": experience.is_ongoing,
+                "star_count": starred_users.count(),
+                "is_starred": is_starred,
+                "starred_by_names": starred_by_names,
+            },
+        })
+    return JsonResponse(data, safe=False)
 
 @login_required(login_url="/login/")
 def delete_experience(request, experience_id):
@@ -350,3 +352,23 @@ def toggle_competitiion_star(request, competition_id):
             competition.starred_by.add(request.user)
 
     return redirect("main:show_competition")
+
+# ================== TUTORIAL 5 ==================
+@require_POST
+def create_experience_ajax(request):
+    if not request.user.is_superuser:
+        return JsonResponse(
+            {"message": "Only the portfolio owner can add experiences."},
+            status=403,
+        )
+
+    form = ExperienceForm(request.POST)
+    if form.is_valid():
+        experience = form.save()
+        return JsonResponse(
+            {"message": "Project added successfully.", "pk": str(experience.id)},
+            status=201,
+        )
+
+    return JsonResponse({"errors": form.errors.get_json_data()}, status=400)
+

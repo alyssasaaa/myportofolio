@@ -1,6 +1,7 @@
 from django.forms.models import ModelForm
 from django.forms.widgets import DateTimeInput, TextInput, Textarea, URLInput, DateInput
-
+from django.core.exceptions import ValidationError
+from django.utils.html import strip_tags
 from main.models import Competition, Experience
 
 class ExperienceForm(ModelForm):
@@ -47,6 +48,24 @@ class ExperienceForm(ModelForm):
                 attrs={"type": "datetime-local"},
             ),
         }
+
+    def clean_title(self):
+        title = strip_tags(self.cleaned_data["title"]).strip()
+        if not title:
+            raise ValidationError(
+                "Experience title can't contain only HTML tags."
+            )
+        return title
+
+    def clean_description(self):
+        description = strip_tags(
+            self.cleaned_data["description"]
+        ).strip()
+        if not description:
+            raise ValidationError(
+                "Description can't contain only HTML tags."
+            )
+        return description
 
 class CompetitionForm(ModelForm):
     class Meta:
