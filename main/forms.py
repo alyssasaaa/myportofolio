@@ -141,4 +141,16 @@ class CompetitionForm(ModelForm):
             )
         return description
 
+    def clean_organizer(self):
+        organizer = strip_tags(self.cleaned_data["organizer"]).strip()
+        if not organizer:
+            raise ValidationError("Organizer cannot contain only HTML tags.")
+        return organizer
+
+    def clean_achievement(self):
+        achievement = strip_tags(self.cleaned_data["achievement"]).strip()
+        if not achievement:
+            raise ValidationError("Achievement cannot contain only HTML tags.")
+        return achievement
+
         

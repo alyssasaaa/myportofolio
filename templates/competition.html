@@ -69,7 +69,26 @@
     const gridContainer = document.getElementById('grid');
     const searchForm = document.getElementById('competition-search-form');
     const searchInput = document.getElementById('search-input');
+    const SEARCH_DEBOUNCE_DELAY = 300;
+    let searchDebounceTimer;        
 
+    function searchProjects() {
+        fetchProjects(searchInput.value.trim());
+    }
+
+    searchInput.addEventListener("input", function() {
+        clearTimeout(searchDebounceTimer);
+
+        searchDebounceTimer = setTimeout(function() {
+            searchProjects();
+        }, SEARCH_DEBOUNCE_DELAY);
+    });
+
+    searchForm.addEventListener("submit", function(event) {
+        event.preventDefault();
+        clearTimeout(searchDebounceTimer);
+        searchProjects();
+    });
     function escapeHtml(value) {
         return String(value ?? '')
             .replaceAll('&', '&amp;')
@@ -143,8 +162,8 @@
                 year: 'numeric'
             });
 
-        const imageUrl = safeHttpUrl(competition.competition_image_url);
-        const competitionUrl = safeHttpUrl(competition.competition_url);
+        const imageUrl = safeHttpUrl(competition.project_image_url);
+        const competitionUrl = safeHttpUrl(competition.project_url);
 
         const imageHtml = imageUrl
             ? `<img
@@ -347,7 +366,7 @@
     function closeCompetitionModal() {
         document.getElementById('add-competition-modal').hidePopover();
     }
-    
+
     // Send the form data to the server
     async function addCompetition(event) {
         event.preventDefault();
