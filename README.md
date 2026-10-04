@@ -70,3 +70,21 @@ Doksli prompts:
 "/copy paste error/ aku salah apa"
 "okay now help me to check the role management adn access control implemeent the editor role using django group or permission..... where and what to start"
 “have i completed all the requirements for assignment 4?”
+
+### Assignment 5
+
+1. Debouncing is JavaScript technique used to control how often a function executes during rapidly triggered events. Debouncing makes the search wait until the user stops typing for a short time before sending a request. For example, in this portfolio, my search waits 300ms after the last keystroke. This avoids sending request for every letter, reducing unnecessary server requests and making the AJAX search much more efficient. 
+
+2. We use await to wait for the result of fetch() before moving to the next line in the async function. Without await, we get a Promise, which represents a result that is not ready yet, instead of the actual response, and for that we would need another way to handle it such as using .then(). 
+
+3. XSS is an attack where malicious code is inserted into a website and runs in other users browsers. Django templates escape variables by default, while JavaScript’s innerHTML treats inserted content as HTML. Therefore, displaying AJAX data through innerHTMLwithout escaping it can allow malicious code to run.   
+
+AI DISCLOSURE:
+I used Codex AI to help adapt the tutorial’s JavaScript examples to my Competition section, debug errors, and understand AJAX. It also helped me notice requirements I had missed, such as debouncing in the Competition search and cleaning the organizer and achievement inputs. I reviewed the suggestions and manually made the changes in VS Code.
+
+I also asked Codex to help me write commit messages because I realized I had been using the prefixes incorrectly.
+
+Prompting history — excerpts
+“/script code from experience/ edit this so it is integrated with my competitions” — adapting the tutorial script.
+“kenaapa sat aku mau coba add dia failed to reach?” — debugging AJAX submission.
+“if you see my codes, apa aja yg aku masih miss dari checkbox/apa yg disuruh?” — checking progress against the requirements. 
