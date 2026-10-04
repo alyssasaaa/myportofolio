@@ -184,33 +184,50 @@ def update_experience(request, experience_id):
 
 def get_competitions_json(request):
     title_query = request.GET.get("title", "").strip()
-
-    competitions = Competition.objects.order_by(
-        "-competition_date",
-        "-created_at",
-    )
+    competitions = Competition.objects.prefetch_related('starred_by').all()
 
     if title_query:
         competitions = competitions.filter(title__icontains=title_query)
 
-    competitions_json = serializers.serialize("json", competitions, use_natural_foreign_keys=True)
+    data = []
+    for competition in competitions:
+        starred_users = competition.starred_by.all()
+        is_starred = request.user in starred_users if request.user.is_authenticated else False
+        starred_by_names = ", ".join([u.username for u in starred_users])
 
-    return HttpResponse(competitions_json, content_type="application/json")
+        data.append({
+            "pk": str(competition.id),
+            "fields": {
+                "title": competition.title,
+                "description": competition.description,
+                "organizer": competition.organizer,
+                "competition_type": competition.competition_type,
+                "competition_date": competition.competition_date,
+                "achievement": competition.achievement,
+                "participation_type": competition.participation_type,
+                "created_at": competition.created_at,
+                "project_url": competition.project_url,
+                "project_image_url": competition.project_image_url,
+                "star_count": starred_users.count(),
+                "is_starred": is_starred,
+                "starred_by_names": starred_by_names,
+            }
+        })
+
+    return JsonResponse(data, safe=False)
 
 def show_competition(request):
-    json_response = get_competitions_json(request)
-    deserialized_competitions = serializers.deserialize("json", json_response.content.decode("utf-8"))
+    title_query = request.GET.get("title", "").strip()
 
-    competitions = [item.object for item in deserialized_competitions]
     context = {
         "name": "Alyssa Rahma Adjani",
         "nickname": "Alyssa",
-        "competition_list": competitions,
-        "title_query": request.GET.get("title", "").strip(),
+        "title_query": title_query,
         "is_editor": (
             request.user.is_authenticated 
             and request.user.groups.filter(name="Editor").exists()
         ),
+        "form": CompetitionForm(),
     }
     return render(request, "competition.html", context)
 
@@ -366,9 +383,27 @@ def create_experience_ajax(request):
     if form.is_valid():
         experience = form.save()
         return JsonResponse(
-            {"message": "Project added successfully.", "pk": str(experience.id)},
+            {"message": "Experience added successfully.", "pk": str(experience.id)},
             status=201,
         )
 
     return JsonResponse({"errors": form.errors.get_json_data()}, status=400)
 
+# ================== ASSIGNMENT 5 ==================
+@require_POST
+def create_competition_ajax(request):
+    if not request.user.is_superuser:
+        return JsonResponse(
+            {"message": "Only the portfolio owner can add competitions."},
+            status=403,
+        )
+    
+    form = CompetitionForm(request.POST)
+    if form.is_valid():
+        competition = form.save()
+        return JsonResponse(
+            {"message": "Competition added successfully.", "pk": str(competition.id)},
+            status=201,
+        )
+
+    return JsonResponse({"errors": form.errors.get_json_data()}, status=400)

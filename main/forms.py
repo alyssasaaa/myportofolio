@@ -21,7 +21,7 @@ class ExperienceForm(ModelForm):
             "description": "Description",
             "category": "Category",
             "stage": "Education Stage",
-            "thumbnail": "Thumbnail URL",
+            "thumbnail": "Thumbnail URL (optional)",
             "ended_at": "End Date",
         }
 
@@ -91,8 +91,8 @@ class CompetitionForm(ModelForm):
             "competition_date": "Competition Date",
             "achievement": "Achievement",
             "participation_type": "Participation Type",
-            "project_url": "Project URL",
-            "project_image_url": "Project Image URL",
+            "project_url": "Competition URL (optional)",
+            "project_image_url": "Competition Image URL (optional)",
         }
 
         widgets = {
@@ -122,4 +122,35 @@ class CompetitionForm(ModelForm):
                 attrs={"placeholder": "https://example.com/image.png"}
             ),
         }
+
+    def clean_title(self):
+        title = strip_tags(self.cleaned_data["title"]).strip()
+        if not title:
+            raise ValidationError(
+                "Competition title can't contain only HTML tags."
+            )
+        return title
+    
+    def clean_description(self):
+        description = strip_tags(
+            self.cleaned_data["description"]
+        ).strip()
+        if not description:
+            raise ValidationError(
+                "Description can't contain only HTML tags."
+            )
+        return description
+
+    def clean_organizer(self):
+        organizer = strip_tags(self.cleaned_data["organizer"]).strip()
+        if not organizer:
+            raise ValidationError("Organizer cannot contain only HTML tags.")
+        return organizer
+
+    def clean_achievement(self):
+        achievement = strip_tags(self.cleaned_data["achievement"]).strip()
+        if not achievement:
+            raise ValidationError("Achievement cannot contain only HTML tags.")
+        return achievement
+
         

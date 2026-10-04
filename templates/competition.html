@@ -13,120 +13,401 @@
                 </div>
 
                 {% if user.is_superuser %}
-                    <a href="{% url 'main:create_competition' %}" class="button">
-                        <span aria-hidden="true">+</span>
-                        Add Competition
-                    </a>
+                    <button type="button"
+                            class="button"
+                            popovertarget="add-competition-modal">
+                        + Add Competition
+                    </button>
                 {% endif %}
             </div>
 
-            <form
-                method="get"
-                action="{% url 'main:show_competition' %}"
-                class="competition-search"
-            >
-                <input
-                    type="search"
-                    name="title"
-                    value="{{ title_query }}"
-                    placeholder="Search competition by title"
-                    aria-label="Search competition by title"
-                >
+            <form id="competition-search-form" class="competition-search">
+                <input type="search"
+                       id="search-input"
+                       name="title"
+                       value="{{ title_query }}"
+                       placeholder="Search competition by title"
+                       aria-label="Search competition by title">
                 <button type="submit" class="button">Search</button>
-
-                {% if title_query %}
-                    <a href="{% url 'main:show_competition' %}" class="button button-secondary">
-                        Clear
-                    </a>
-                {% endif %}
             </form>
 
-            <div class="competition-grid">
-                {% for competition in competition_list %}
-                    <article class="competition-card">
-                        {% if competition.project_image_url %}
-                            <img
-                                class="competition-image"
-                                src="{{ competition.project_image_url }}"
-                                alt="Project for {{ competition.title }}"
-                                loading="lazy"
-                            >
-                        {% endif %}
-
-                        <div class="competition-card-body">
-                            <div class="competition-tags">
-                                <span class="competition-tag">
-                                    {{ competition.get_competition_type_display }}
-                                </span>
-                                <span class="competition-tag competition-tag-neutral">
-                                    {{ competition.get_participation_type_display }}
-                                </span>
-                            </div>
-
-                            <h2>{{ competition.title }}</h2>
-
-                            <p class="competition-organizer">
-                                {{ competition.organizer }}
-                            </p>
-
-                            <time
-                                class="competition-date"
-                                datetime="{{ competition.competition_date|date:'Y-m-d' }}"
-                            >
-                                {{ competition.competition_date|date:"j F Y" }}
-                            </time>
-
-                            <div class="competition-description">
-                                {{ competition.description|linebreaksbr }}
-                            </div>
-
-                            <div class="competition-achievement">
-                                <span>Achievement</span>
-                                <strong>{{ competition.achievement }}</strong>
-                            </div>
-
-                            <div class="competition-actions">
-                                {% if competition.project_url %}
-                                    <a
-                                        href="{{ competition.project_url }}"
-                                        class="button button-secondary"
-                                        target="_blank"
-                                        rel="noopener noreferrer"
-                                    >
-                                        View Project
-                                        <span aria-hidden="true">↗</span>
-                                    </a>
-                                {% endif %}
-                                
-                                {% if user.is_superuser or is_editor %}
-                                    <a
-                                        href="{% url 'main:update_competition' competition.id %}"
-                                        class="button competition-edit"
-                                    >
-                                        Edit
-                                    </a>
-                                {% endif %}
-
-                                {% include "components/competition_star.html" with competition=competition %}
-
-                                {% if user.is_superuser %}
-                                    {% include "components/competition_delete_modal.html" with competition=competition %}
-                                {% endif %}
-                            </div>
-                        </div>
-                    </article>
-                {% empty %}
-                    <p class="competition-empty">
-                        {% if title_query %}
-                            No competitions match “{{ title_query }}”.
-                        {% else %}
-                            No competitions added yet.
-                            Use Add Competition to share your first experience.
-                        {% endif %}
-                    </p>
-                {% endfor %}
+            <!-- Loading State -->
+            <div id="loading" class="empty-state hide">
+                <p>Loading competitions...</p>
             </div>
+
+            <!-- Error State -->
+            <div id="error" class="empty-state hide">
+                <p>Failed to load competition data. Please try again.</p>
+            </div>
+
+            <!-- Empty State -->
+            <div id="empty" class="empty-state hide">
+                <p>No competitions have been added or found yet.</p>
+            </div>
+
+            <!-- Competition Grid -->
+            <div id="grid" class="competition-grid hide"></div>
         </div>
     </section>
 </main>
+{% if user.is_superuser %}
+    {% include "components/competition_form_modal.html" %}
+{% endif %}
+
+<script>
+    // Configuration
+    const BASE_COMPETITIONS_ENDPOINT = "{% url 'main:get_competitions_json' %}";
+    const IS_SUPERUSER = "{{ user.is_superuser|yesno:'true,false' }}" === "true";
+    const IS_EDITOR = "{{ is_editor|yesno:'true,false' }}" === "true";
+    let competitionsAbortController;
+
+    // DOM elements
+    const loadingState = document.getElementById('loading');
+    const errorState = document.getElementById('error');
+    const emptyState = document.getElementById('empty');
+    const gridContainer = document.getElementById('grid');
+    const searchForm = document.getElementById('competition-search-form');
+    const searchInput = document.getElementById('search-input');
+    const SEARCH_DEBOUNCE_DELAY = 300;
+    let searchDebounceTimer;        
+
+    function searchProjects() {
+        fetchProjects(searchInput.value.trim());
+    }
+
+    searchInput.addEventListener("input", function() {
+        clearTimeout(searchDebounceTimer);
+
+        searchDebounceTimer = setTimeout(function() {
+            searchProjects();
+        }, SEARCH_DEBOUNCE_DELAY);
+    });
+
+    searchForm.addEventListener("submit", function(event) {
+        event.preventDefault();
+        clearTimeout(searchDebounceTimer);
+        searchProjects();
+    });
+    function escapeHtml(value) {
+        return String(value ?? '')
+            .replaceAll('&', '&amp;')
+            .replaceAll('<', '&lt;')
+            .replaceAll('>', '&gt;')
+            .replaceAll('"', '&quot;')
+            .replaceAll("'", '&#39;');
+    }
+
+    // Only allow HTTP/HTTPS links and image URLs.
+    function safeHttpUrl(value) {
+        if (!value) return '';
+        try {
+            const url = new URL(value);
+            return ['http:', 'https:'].includes(url.protocol)
+                ? url.href
+                : '';
+        } catch {
+            return '';
+        }
+    }
+
+    function displayPageSection({
+        showLoading = false,
+        showError = false,
+        showEmpty = false,
+        showGrid = false
+    }) {
+        loadingState.classList.toggle('hide', !showLoading);
+        errorState.classList.toggle('hide', !showError);
+        emptyState.classList.toggle('hide', !showEmpty);
+        gridContainer.classList.toggle('hide', !showGrid);
+    }
+
+    function buildCompetitionCardElement(item) {
+        const competition = item.fields;
+        const competitionId = item.pk;
+
+        const articleElement = document.createElement('article');
+        articleElement.className = 'competition-card';
+
+        // Display labels for the choice values returned by your API.
+        const competitionTypes = {
+            'hackathon': 'Hackathon',
+            'data competition': 'Data Competition',
+            'ui/ux': 'UI/UX'
+        };
+
+        const participationTypes = {
+            'individual': 'Individual',
+            'group': 'Group'
+        };
+
+        const competitionType =
+            competitionTypes[competition.competition_type]
+            ?? competition.competition_type;
+
+        const participationType =
+            participationTypes[competition.participation_type]
+            ?? competition.participation_type;
+
+        const date = new Date(
+            `${competition.competition_date}T00:00:00`
+        );
+
+        const dateLabel = Number.isNaN(date.getTime())
+            ? competition.competition_date
+            : date.toLocaleDateString('en-GB', {
+                day: 'numeric',
+                month: 'long',
+                year: 'numeric'
+            });
+
+        const imageUrl = safeHttpUrl(competition.project_image_url);
+        const competitionUrl = safeHttpUrl(competition.project_url);
+
+        const imageHtml = imageUrl
+            ? `<img
+                   src="${escapeHtml(imageUrl)}"
+                   alt="Competition for ${escapeHtml(competition.title)}"
+                   class="competition-image"
+                   loading="lazy">`
+            : '';
+
+        const urlHtml = competitionUrl
+            ? `<a href="${escapeHtml(competitionUrl)}"
+                  class="button button-secondary"
+                  target="_blank"
+                  rel="noopener noreferrer">
+                   View Competition
+                   <span aria-hidden="true">↗</span>
+               </a>`
+            : '';
+
+        const placeholderId = '00000000-0000-0000-0000-000000000000';
+
+        const editUrl =
+            "{% url 'main:update_competition' '00000000-0000-0000-0000-000000000000' %}"
+                .replace(placeholderId, competitionId);
+
+        const deleteUrl =
+            "{% url 'main:delete_competition' '00000000-0000-0000-0000-000000000000' %}"
+                .replace(placeholderId, competitionId);
+
+        const starUrl =
+            "{% url 'main:toggle_competition_star' '00000000-0000-0000-0000-000000000000' %}"
+                .replace(placeholderId, competitionId);
+
+        const editHtml = (IS_SUPERUSER || IS_EDITOR)
+            ? `<a href="${escapeHtml(editUrl)}"
+                  class="button competition-edit">
+                   Edit
+               </a>`
+            : '';
+
+        const deleteHtml = IS_SUPERUSER
+            ? `<form method="post"
+                     action="${escapeHtml(deleteUrl)}"
+                     style="display:inline;">
+                   {% csrf_token %}
+                   <button
+                       type="submit"
+                       class="button competition-delete"
+                       onclick="return confirm('Are you sure you want to delete this competition?');">
+                       Delete
+                   </button>
+               </form>`
+            : '';
+
+        const isStarredClass = competition.is_starred
+            ? ' is-starred'
+            : '';
+
+        const starText = competition.is_starred ? 'Unstar' : 'Star';
+
+        const starTitle = competition.star_count > 0
+            ? `Starred by ${competition.starred_by_names}`
+            : 'Be the first to star';
+
+        // Escape first, then preserve description line breaks.
+        const descriptionHtml = escapeHtml(competition.description)
+            .replace(/\r\n|\r|\n/g, '<br>');
+
+        articleElement.innerHTML = `
+            ${imageHtml}
+
+            <div class="competition-card-body">
+                <div class="competition-tags">
+                    <span class="competition-tag">
+                        ${escapeHtml(competitionType)}
+                    </span>
+                    <span class="competition-tag competition-tag-neutral">
+                        ${escapeHtml(participationType)}
+                    </span>
+                </div>
+
+                <h2>${escapeHtml(competition.title)}</h2>
+
+                <p class="competition-organizer">
+                    ${escapeHtml(competition.organizer)}
+                </p>
+
+                <time class="competition-date"
+                      datetime="${escapeHtml(competition.competition_date)}">
+                    ${escapeHtml(dateLabel)}
+                </time>
+
+                <div class="competition-description">
+                    ${descriptionHtml}
+                </div>
+
+                <div class="competition-achievement">
+                    <span>Achievement</span>
+                    <strong>${escapeHtml(competition.achievement)}</strong>
+                </div>
+
+                <div class="competition-actions">
+                    ${urlHtml}
+                    ${editHtml}
+
+                    <form method="post"
+                          action="${escapeHtml(starUrl)}"
+                          class="star-form">
+                        {% csrf_token %}
+                        <button
+                            type="submit"
+                            class="button button-star${isStarredClass}"
+                            title="${escapeHtml(starTitle)}">
+                            <span aria-hidden="true">★</span>
+                            ${starText}
+                            <span class="star-count">
+                                ${escapeHtml(competition.star_count)}
+                            </span>
+                        </button>
+                    </form>
+
+                    ${deleteHtml}
+                </div>
+            </div>
+        `;
+
+        return articleElement;
+    }
+
+    async function fetchCompetitions(searchQuery = '') {
+        if (competitionsAbortController) {
+            competitionsAbortController.abort();
+        }
+
+        competitionsAbortController = new AbortController();
+
+        try {
+            displayPageSection({ showLoading: true });
+
+            const url = searchQuery
+                ? `${BASE_COMPETITIONS_ENDPOINT}?title=${encodeURIComponent(searchQuery)}`
+                : BASE_COMPETITIONS_ENDPOINT;
+
+            const response = await fetch(url, {
+                headers: { 'Accept': 'application/json' },
+                signal: competitionsAbortController.signal
+            });
+
+            if (!response.ok) {
+                throw new Error('Failed to fetch competition data');
+            }
+
+            const competitionData = await response.json();
+            gridContainer.replaceChildren();
+
+            if (competitionData.length === 0) {
+                displayPageSection({ showEmpty: true });
+                return;
+            }
+
+            competitionData.forEach(item => {
+                gridContainer.appendChild(
+                    buildCompetitionCardElement(item)
+                );
+            });
+
+            displayPageSection({ showGrid: true });
+        } catch (error) {
+            if (error.name === 'AbortError') return;
+
+            console.error('Error loading competitions:', error);
+            displayPageSection({ showError: true });
+        }
+    }
+
+    searchForm.addEventListener('submit', function(event) {
+        event.preventDefault();
+        fetchCompetitions(searchInput.value.trim());
+    });
+
+    const CREATE_COMPETITION_ENDPOINT = "{% url 'main:create_competition_ajax' %}";
+    const competitionForm = document.getElementById('competition-form');
+
+    // Read a cookie value, used to get the CSRF token
+    function getCookie(name) {
+        let cookieValue = null;
+        if (document.cookie && document.cookie !== '') {
+            const cookies = document.cookie.split(';');
+            for (let i = 0; i < cookies.length; i++) {
+                const cookie = cookies[i].trim();
+                if (cookie.substring(0, name.length + 1) === (name + '=')) {
+                    cookieValue = decodeURIComponent(cookie.substring(name.length + 1));
+                    break;
+                }
+            }
+        }
+        return cookieValue;
+    }
+
+    function closeCompetitionModal() {
+        document.getElementById('add-competition-modal').hidePopover();
+    }
+
+    // Send the form data to the server
+    async function addCompetition(event) {
+        event.preventDefault();
+
+        const submitButton = competitionForm.querySelector('button[type="submit"]');
+        submitButton.disabled = true;
+
+        try {
+            const response = await fetch(CREATE_COMPETITION_ENDPOINT, {
+                method: 'POST',
+                headers: { 'X-CSRFToken': getCookie('csrftoken') },
+                body: new FormData(competitionForm),
+            });
+            const result = await response.json().catch(() => ({}));
+
+            if (response.ok) {
+                competitionForm.reset();
+                closeCompetitionModal();
+                showToast('Success', 'New competition added successfully!', 'success');
+                fetchCompetitions(searchInput.value.trim());
+            } else {
+                const errorMessages = result.errors
+                    ? Object.values(result.errors).flat().map(error => error.message)
+                    : [result.message || `Something went wrong (status ${response.status}).`];
+                showToast('Failed to add competition', errorMessages.join(' '), 'error');
+            }
+        } catch (error) {
+            console.error('Error adding competition:', error);
+            showToast('Failed to add competition', 'Could not reach the server. Please try again.', 'error');
+        } finally {
+            submitButton.disabled = false;
+        }
+    }
+
+    if (competitionForm) {
+        competitionForm.addEventListener('submit', addCompetition);
+    }
+
+
+    // Initial load
+    fetchCompetitions(searchInput.value.trim());
+</script>
+
 {% endblock content %}
