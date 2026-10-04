@@ -72,23 +72,24 @@
     const SEARCH_DEBOUNCE_DELAY = 300;
     let searchDebounceTimer;        
 
-    function searchProjects() {
-        fetchProjects(searchInput.value.trim());
+    function searchCompetitions() {
+        fetchCompetitions(searchInput.value.trim());
     }
 
-    searchInput.addEventListener("input", function() {
+    searchInput.addEventListener('input', function() {
         clearTimeout(searchDebounceTimer);
 
         searchDebounceTimer = setTimeout(function() {
-            searchProjects();
+            searchCompetitions();
         }, SEARCH_DEBOUNCE_DELAY);
     });
 
-    searchForm.addEventListener("submit", function(event) {
+    searchForm.addEventListener('submit', function(event) {
         event.preventDefault();
         clearTimeout(searchDebounceTimer);
-        searchProjects();
+        searchCompetitions();
     });
+
     function escapeHtml(value) {
         return String(value ?? '')
             .replaceAll('&', '&amp;')
@@ -338,11 +339,6 @@
             displayPageSection({ showError: true });
         }
     }
-
-    searchForm.addEventListener('submit', function(event) {
-        event.preventDefault();
-        fetchCompetitions(searchInput.value.trim());
-    });
 
     const CREATE_COMPETITION_ENDPOINT = "{% url 'main:create_competition_ajax' %}";
     const competitionForm = document.getElementById('competition-form');
