@@ -91,8 +91,8 @@ class CompetitionForm(ModelForm):
             "competition_date": "Competition Date",
             "achievement": "Achievement",
             "participation_type": "Participation Type",
-            "project_url": "Project URL (optional)",
-            "project_image_url": "Project Image URL (optional)",
+            "project_url": "Competition URL (optional)",
+            "project_image_url": "Competition Image URL (optional)",
         }
 
         widgets = {
@@ -122,4 +122,23 @@ class CompetitionForm(ModelForm):
                 attrs={"placeholder": "https://example.com/image.png"}
             ),
         }
+
+    def clean_title(self):
+        title = strip_tags(self.cleaned_data["title"]).strip()
+        if not title:
+            raise ValidationError(
+                "Competition title can't contain only HTML tags."
+            )
+        return title
+    
+    def clean_description(self):
+        description = strip_tags(
+            self.cleaned_data["description"]
+        ).strip()
+        if not description:
+            raise ValidationError(
+                "Description can't contain only HTML tags."
+            )
+        return description
+
         
