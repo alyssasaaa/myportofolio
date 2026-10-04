@@ -143,23 +143,23 @@
                 year: 'numeric'
             });
 
-        const imageUrl = safeHttpUrl(competition.project_image_url);
-        const projectUrl = safeHttpUrl(competition.project_url);
+        const imageUrl = safeHttpUrl(competition.competition_image_url);
+        const competitionUrl = safeHttpUrl(competition.competition_url);
 
         const imageHtml = imageUrl
             ? `<img
                    src="${escapeHtml(imageUrl)}"
-                   alt="Project for ${escapeHtml(competition.title)}"
+                   alt="Competition for ${escapeHtml(competition.title)}"
                    class="competition-image"
                    loading="lazy">`
             : '';
 
-        const urlHtml = projectUrl
-            ? `<a href="${escapeHtml(projectUrl)}"
+        const urlHtml = competitionUrl
+            ? `<a href="${escapeHtml(competitionUrl)}"
                   class="button button-secondary"
                   target="_blank"
                   rel="noopener noreferrer">
-                   View Project
+                   View Competition
                    <span aria-hidden="true">↗</span>
                </a>`
             : '';
@@ -324,6 +324,64 @@
         event.preventDefault();
         fetchCompetitions(searchInput.value.trim());
     });
+
+    const CREATE_COMPETITION_ENDPOINT = "{% url 'main:create_competition_ajax' %}";
+    const competitionForm = document.getElementById('competition-form');
+
+    // Read a cookie value, used to get the CSRF token
+    function getCookie(name) {
+        let cookieValue = null;
+        if (document.cookie && document.cookie !== '') {
+            const cookies = document.cookie.split(';');
+            for (let i = 0; i < cookies.length; i++) {
+                const cookie = cookies[i].trim();
+                if (cookie.substring(0, name.length + 1) === (name + '=')) {
+                    cookieValue = decodeURIComponent(cookie.substring(name.length + 1));
+                    break;
+                }
+            }
+        }
+        return cookieValue;
+    }
+
+    // Send the form data to the server
+    async function addCompetition(event) {
+        event.preventDefault();
+
+        const submitButton = competitionForm.querySelector('button[type="submit"]');
+        submitButton.disabled = true;
+
+        try {
+            const response = await fetch(CREATE_PROJECT_ENDPOINT, {
+                method: 'POST',
+                headers: { 'X-CSRFToken': getCookie('csrftoken') },
+                body: new FormData(competitionForm),
+            });
+            const result = await response.json().catch(() => ({}));
+
+            if (response.ok) {
+                competitionForm.reset();
+                closeCompetitionModal();
+                showToast('Success', 'New competition added successfully!', 'success');
+                fetchCompetitions(searchInput.value.trim());
+            } else {
+                const errorMessages = result.errors
+                    ? Object.values(result.errors).flat().map(error => error.message)
+                    : [result.message || `Something went wrong (status ${response.status}).`];
+                showToast('Failed to add competition', errorMessages.join(' '), 'error');
+            }
+        } catch (error) {
+            console.error('Error adding competition:', error);
+            showToast('Failed to add competition', 'Could not reach the server. Please try again.', 'error');
+        } finally {
+            submitButton.disabled = false;
+        }
+    }
+
+    if (competitionForm) {
+        competitionForm.addEventListener('submit', addCompetition);
+    }
+
 
     // Initial load
     fetchCompetitions(searchInput.value.trim());

@@ -383,9 +383,27 @@ def create_experience_ajax(request):
     if form.is_valid():
         experience = form.save()
         return JsonResponse(
-            {"message": "Project added successfully.", "pk": str(experience.id)},
+            {"message": "Experience added successfully.", "pk": str(experience.id)},
             status=201,
         )
 
     return JsonResponse({"errors": form.errors.get_json_data()}, status=400)
 
+# ================== ASSIGNMENT 5 ==================
+@require_POST
+def create_competition_ajax(request):
+    if not request.user.is_superuser:
+        return JsonResponse(
+            {"message": "Only the portfolio owner can add competitions."},
+            status=403,
+        )
+    
+    form = CompetitionForm(request.POST)
+    if form.is_valid():
+        competition = form.save()
+        return JsonResponse(
+            {"message": "Competition added successfully.", "pk": str(competition.id)},
+            status=201,
+        )
+
+    return JsonResponse({"errors": form.errors.get_json_data()}, status=400)
