@@ -211,6 +211,7 @@ def show_competition(request):
             request.user.is_authenticated 
             and request.user.groups.filter(name="Editor").exists()
         ),
+        "form": CompetitionForm(),
     }
     return render(request, "competition.html", context)
 

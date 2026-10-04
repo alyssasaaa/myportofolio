@@ -13,10 +13,11 @@
                 </div>
 
                 {% if user.is_superuser %}
-                    <a href="{% url 'main:create_competition' %}" class="button">
-                        <span aria-hidden="true">+</span>
-                        Add Competition
-                    </a>
+                    <button type="button"
+                            class="button"
+                            popovertarget="add-competition-modal">
+                        + Add Competition
+                    </button>
                 {% endif %}
             </div>
 
@@ -129,4 +130,8 @@
         </div>
     </section>
 </main>
+{% if user.is_superuser %}
+    {% include "components/competition_form_modal.html" %}
+{% endif %}
+
 {% endblock content %}
