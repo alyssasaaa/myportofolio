@@ -344,6 +344,10 @@
         return cookieValue;
     }
 
+    function closeCompetitionModal() {
+        document.getElementById('add-competition-modal').hidePopover();
+    }
+    
     // Send the form data to the server
     async function addCompetition(event) {
         event.preventDefault();
@@ -352,7 +356,7 @@
         submitButton.disabled = true;
 
         try {
-            const response = await fetch(CREATE_PROJECT_ENDPOINT, {
+            const response = await fetch(CREATE_COMPETITION_ENDPOINT, {
                 method: 'POST',
                 headers: { 'X-CSRFToken': getCookie('csrftoken') },
                 body: new FormData(competitionForm),

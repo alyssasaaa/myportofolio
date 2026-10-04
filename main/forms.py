@@ -21,7 +21,7 @@ class ExperienceForm(ModelForm):
             "description": "Description",
             "category": "Category",
             "stage": "Education Stage",
-            "thumbnail": "Thumbnail URL",
+            "thumbnail": "Thumbnail URL (optional)",
             "ended_at": "End Date",
         }
 
@@ -91,8 +91,8 @@ class CompetitionForm(ModelForm):
             "competition_date": "Competition Date",
             "achievement": "Achievement",
             "participation_type": "Participation Type",
-            "project_url": "Project URL",
-            "project_image_url": "Project Image URL",
+            "project_url": "Project URL (optional)",
+            "project_image_url": "Project Image URL (optional)",
         }
 
         widgets = {
