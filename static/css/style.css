@@ -17,7 +17,7 @@
 }
 
 body {
-    font-family: -apple-system, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+    font-family: "Inter", -apple-system, "Segoe UI", sans-serif;
     color: var(--ink);
     background-color: var(--paper);
     line-height: 1.6;
@@ -1094,4 +1094,44 @@ h1 {
 
 .hide {
     display: none !important;
+}
+
+/* Experience and Competition card layouts */
+.experience-grid,
+.competition-grid {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 1.5rem;
+}
+
+.experience-card,
+.competition-card {
+    min-width: 0;
+    display: flex;
+    flex-direction: column;
+    overflow-wrap: anywhere;
+}
+
+.experience-card-actions {
+    margin-top: auto;
+    padding-top: 1rem;
+}
+
+.experience-actions,
+.competition-actions {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: 0.75rem;
+}
+
+.competition-actions {
+    margin-top: auto;
+    padding-top: 1rem;
+}
+
+@media (max-width: 600px) {
+    .experience-grid,
+    .competition-grid {
+        grid-template-columns: 1fr;
+    }
 }
