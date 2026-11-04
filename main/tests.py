@@ -30,39 +30,51 @@ class MainTest(TestCase):
         self.assertEqual(str(self.experience), "PBP Teaching Assistant")
         self.assertEqual(self.experience.category, "part-time")
         self.assertTrue(self.experience.is_ongoing)
-
+        
     def test_experience_page(self):
         response = self.client.get(reverse("main:show_experience"))
 
         self.assertEqual(response.status_code, 200)
         self.assertTemplateUsed(response, "experience.html")
-        self.assertContains(response, self.experience.title)
-        self.assertContains(response, self.experience.description)
-        self.assertContains(response, "Part-Time")
-        self.assertContains(response, "Ongoing")
+        self.assertContains(response, 'id="university-grid"')
+        self.assertContains(response, 'id="high-school-grid"')
+        self.assertContains(response, 'id="experience-search-form"')
+        self.assertContains(response, reverse("api:experience-list"))
         self.assertContains(response, f'href="{reverse("main:show_main")}"')
+
+        response = self.client.get(reverse("api:experience-list"))
+        self.assertEqual(response.status_code, 200)
+        experience = next(
+            item for item in response.json() if item["id"] == str(self.experience.id)
+        )
+        self.assertEqual(experience["title"], self.experience.title)
+        self.assertEqual(experience["description"], self.experience.description)
+        self.assertEqual(experience["category"], "part-time")
+        self.assertTrue(experience["is_ongoing"])
 
     def test_empty_experience_page(self):
         Experience.objects.all().delete()
         response = self.client.get(reverse("main:show_experience"))
 
-        self.assertContains(
-            response,
-            "No university experience has been added yet.",
-        )
-        self.assertContains(
-            response,
-            "No high school experience has been added yet.",
-        )
+        self.assertEqual(response.status_code, 200)
+        self.assertContains(response, 'id="empty"')
+        self.assertContains(response, "No experiences have been added or found yet.")
+
+        response = self.client.get(reverse("api:experience-list"))
+        self.assertEqual(response.status_code, 200)
+        self.assertEqual(response.json(), [])
 
     def test_completed_experience(self):
         self.experience.ended_at = timezone.now()
         self.experience.save()
-        response = self.client.get(reverse("main:show_experience"))
 
         self.assertFalse(self.experience.is_ongoing)
-        self.assertContains(response, "Completed")
-        self.assertNotContains(response, "Ongoing")
+        response = self.client.get(
+            reverse("api:experience-detail", args=[self.experience.id])
+        )
+        self.assertEqual(response.status_code, 200)
+        self.assertFalse(response.json()["is_ongoing"])
+        self.assertIsNotNone(response.json()["ended_at"])
 
 class EducationTest(TestCase):
     def setUp(self):
