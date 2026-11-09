@@ -12,8 +12,8 @@ class IsPortfolioOwnerOrReadOnly(BasePermission):
 
 class IsPortfolioOwnerOrEditorOrReadOnly(BasePermission):
     message = (
-        "Only the portfolio owner can create or delete experiences. "
-        "Only the owner or an Editor can update experiences."
+        "Only the portfolio owner can create or delete items. "
+        "Only the owner or an Editor can update items."
     )
     
     def has_permission(self, request, view):
