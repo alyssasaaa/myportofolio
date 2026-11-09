@@ -55,354 +55,231 @@
     {% include "components/competition_form_modal.html" %}
 {% endif %}
 
+{% csrf_token %}
 <script>
-    // Configuration
-    const BASE_COMPETITIONS_ENDPOINT = "{% url 'main:get_competitions_json' %}";
+    const BASE_COMPETITIONS_ENDPOINT = "{% url 'api:competition-list' %}";
+    const DETAIL_COMPETITION_ENDPOINT = "{% url 'api:competition-detail' '00000000-0000-0000-0000-000000000000' %}";
+    const STAR_COMPETITION_ENDPOINT = "{% url 'api:competition-star' '00000000-0000-0000-0000-000000000000' %}";
+    const EDIT_COMPETITION_ENDPOINT = "{% url 'main:update_competition' '00000000-0000-0000-0000-000000000000' %}";
     const IS_SUPERUSER = "{{ user.is_superuser|yesno:'true,false' }}" === "true";
     const IS_EDITOR = "{{ is_editor|yesno:'true,false' }}" === "true";
-    let competitionsAbortController;
+    const IS_AUTHENTICATED = "{{ user.is_authenticated|yesno:'true,false' }}" === "true";
 
-    // DOM elements
     const loadingState = document.getElementById('loading');
     const errorState = document.getElementById('error');
     const emptyState = document.getElementById('empty');
     const gridContainer = document.getElementById('grid');
     const searchForm = document.getElementById('competition-search-form');
     const searchInput = document.getElementById('search-input');
-    const SEARCH_DEBOUNCE_DELAY = 300;
-    let searchDebounceTimer;        
+    const competitionForm = document.getElementById('competition-form');
+    let competitionsAbortController;
+    let searchDebounceTimer;
 
-    function searchCompetitions() {
-        fetchCompetitions(searchInput.value.trim());
+    function getCookie(name) {
+        const prefix = `${name}=`;
+        const cookie = document.cookie.split(';').map(value => value.trim())
+            .find(value => value.startsWith(prefix));
+        return cookie ? decodeURIComponent(cookie.slice(prefix.length)) : null;
     }
-
-    searchInput.addEventListener('input', function() {
-        clearTimeout(searchDebounceTimer);
-
-        searchDebounceTimer = setTimeout(function() {
-            searchCompetitions();
-        }, SEARCH_DEBOUNCE_DELAY);
-    });
-
-    searchForm.addEventListener('submit', function(event) {
-        event.preventDefault();
-        clearTimeout(searchDebounceTimer);
-        searchCompetitions();
-    });
 
     function escapeHtml(value) {
-        return String(value ?? '')
-            .replaceAll('&', '&amp;')
-            .replaceAll('<', '&lt;')
-            .replaceAll('>', '&gt;')
-            .replaceAll('"', '&quot;')
-            .replaceAll("'", '&#39;');
+        return String(value ?? '').replaceAll('&', '&amp;')
+            .replaceAll('<', '&lt;').replaceAll('>', '&gt;')
+            .replaceAll('"', '&quot;').replaceAll("'", '&#39;');
     }
 
-    // Only allow HTTP/HTTPS links and image URLs.
     function safeHttpUrl(value) {
         if (!value) return '';
         try {
             const url = new URL(value);
-            return ['http:', 'https:'].includes(url.protocol)
-                ? url.href
-                : '';
+            return ['http:', 'https:'].includes(url.protocol) ? url.href : '';
         } catch {
             return '';
         }
     }
 
-    function displayPageSection({
-        showLoading = false,
-        showError = false,
-        showEmpty = false,
-        showGrid = false
-    }) {
+    function competitionEndpoint(pattern, id) {
+        return pattern.replace('00000000-0000-0000-0000-000000000000', id);
+    }
+
+    function displayPageSection({ showLoading = false, showError = false, showEmpty = false, showGrid = false }) {
         loadingState.classList.toggle('hide', !showLoading);
         errorState.classList.toggle('hide', !showError);
         emptyState.classList.toggle('hide', !showEmpty);
         gridContainer.classList.toggle('hide', !showGrid);
     }
 
-    function buildCompetitionCardElement(item) {
-        const competition = item.fields;
-        const competitionId = item.pk;
+    function buildCompetitionCardElement(competition) {
+        const article = document.createElement('article');
+        article.className = 'competition-card';
 
-        const articleElement = document.createElement('article');
-        articleElement.className = 'competition-card';
-
-        // Display labels for the choice values returned by your API.
         const competitionTypes = {
             'hackathon': 'Hackathon',
             'data competition': 'Data Competition',
-            'ui/ux': 'UI/UX'
+            'ui/ux': 'UI/UX',
         };
+        const participationTypes = { 'individual': 'Individual', 'group': 'Group' };
+        const competitionType = competitionTypes[competition.competition_type] ?? competition.competition_type;
+        const participationType = participationTypes[competition.participation_type] ?? competition.participation_type;
 
-        const participationTypes = {
-            'individual': 'Individual',
-            'group': 'Group'
-        };
-
-        const competitionType =
-            competitionTypes[competition.competition_type]
-            ?? competition.competition_type;
-
-        const participationType =
-            participationTypes[competition.participation_type]
-            ?? competition.participation_type;
-
-        const date = new Date(
-            `${competition.competition_date}T00:00:00`
-        );
-
-        const dateLabel = Number.isNaN(date.getTime())
-            ? competition.competition_date
-            : date.toLocaleDateString('en-GB', {
-                day: 'numeric',
-                month: 'long',
-                year: 'numeric'
-            });
+        const date = new Date(`${competition.competition_date}T00:00:00`);
+        const dateLabel = Number.isNaN(date.getTime()) ? competition.competition_date
+            : date.toLocaleDateString('en-GB', { day: 'numeric', month: 'long', year: 'numeric' });
 
         const imageUrl = safeHttpUrl(competition.project_image_url);
-        const competitionUrl = safeHttpUrl(competition.project_url);
-
-        const imageHtml = imageUrl
-            ? `<img
-                   src="${escapeHtml(imageUrl)}"
-                   alt="Competition for ${escapeHtml(competition.title)}"
-                   class="competition-image"
-                   loading="lazy">`
+        const projectUrl = safeHttpUrl(competition.project_url);
+        const image = imageUrl
+            ? `<img src="${escapeHtml(imageUrl)}" alt="${escapeHtml(competition.title)}" class="competition-image" loading="lazy">`
+            : '';
+        const link = projectUrl
+            ? `<a href="${escapeHtml(projectUrl)}" class="button button-secondary" target="_blank" rel="noopener noreferrer">View Competition ↗</a>`
             : '';
 
-        const urlHtml = competitionUrl
-            ? `<a href="${escapeHtml(competitionUrl)}"
-                  class="button button-secondary"
-                  target="_blank"
-                  rel="noopener noreferrer">
-                   View Competition
-                   <span aria-hidden="true">↗</span>
-               </a>`
+        const editUrl = competitionEndpoint(EDIT_COMPETITION_ENDPOINT, competition.id);
+        const edit = (IS_SUPERUSER || IS_EDITOR)
+            ? `<a href="${escapeHtml(editUrl)}" class="button competition-edit">Edit</a>`
             : '';
-
-        const placeholderId = '00000000-0000-0000-0000-000000000000';
-
-        const editUrl =
-            "{% url 'main:update_competition' '00000000-0000-0000-0000-000000000000' %}"
-                .replace(placeholderId, competitionId);
-
-        const deleteUrl =
-            "{% url 'main:delete_competition' '00000000-0000-0000-0000-000000000000' %}"
-                .replace(placeholderId, competitionId);
-
-        const starUrl =
-            "{% url 'main:toggle_competition_star' '00000000-0000-0000-0000-000000000000' %}"
-                .replace(placeholderId, competitionId);
-
-        const editHtml = (IS_SUPERUSER || IS_EDITOR)
-            ? `<a href="${escapeHtml(editUrl)}"
-                  class="button competition-edit">
-                   Edit
-               </a>`
-            : '';
-
-        const deleteHtml = IS_SUPERUSER
-            ? `<form method="post"
-                     action="${escapeHtml(deleteUrl)}"
-                     style="display:inline;">
-                   {% csrf_token %}
-                   <button
-                       type="submit"
-                       class="button competition-delete"
-                       onclick="return confirm('Are you sure you want to delete this competition?');">
-                       Delete
-                   </button>
-               </form>`
-            : '';
-
-        const isStarredClass = competition.is_starred
-            ? ' is-starred'
-            : '';
-
-        const starText = competition.is_starred ? 'Unstar' : 'Star';
-
         const starTitle = competition.star_count > 0
-            ? `Starred by ${competition.starred_by_names}`
-            : 'Be the first to star';
+            ? `Starred by ${competition.starred_by_names}` : 'Be the first to star';
+        const star = IS_AUTHENTICATED
+            ? `<button type="button" class="button button-star${competition.is_starred ? ' is-starred' : ''}"
+                    data-action="star" data-id="${escapeHtml(competition.id)}"
+                    aria-pressed="${competition.is_starred ? 'true' : 'false'}" title="${escapeHtml(starTitle)}">
+                    <span aria-hidden="true">★</span> ${competition.is_starred ? 'Unstar' : 'Star'}
+                    <span class="star-count">${escapeHtml(competition.star_count)}</span>
+               </button>`
+            : `<a href="{% url 'main:login' %}" class="button">Login to star (${escapeHtml(competition.star_count)})</a>`;
+        const remove = IS_SUPERUSER
+            ? `<button type="button" class="button competition-delete" data-action="delete"
+                    data-id="${escapeHtml(competition.id)}">Delete</button>`
+            : '';
+        const description = escapeHtml(competition.description).replace(/\r\n|\r|\n/g, '<br>');
 
-        // Escape first, then preserve description line breaks.
-        const descriptionHtml = escapeHtml(competition.description)
-            .replace(/\r\n|\r|\n/g, '<br>');
-
-        articleElement.innerHTML = `
-            ${imageHtml}
-
+        article.innerHTML = `${image}
             <div class="competition-card-body">
                 <div class="competition-tags">
-                    <span class="competition-tag">
-                        ${escapeHtml(competitionType)}
-                    </span>
-                    <span class="competition-tag competition-tag-neutral">
-                        ${escapeHtml(participationType)}
-                    </span>
+                    <span class="competition-tag">${escapeHtml(competitionType)}</span>
+                    <span class="competition-tag competition-tag-neutral">${escapeHtml(participationType)}</span>
                 </div>
-
                 <h2>${escapeHtml(competition.title)}</h2>
-
-                <p class="competition-organizer">
-                    ${escapeHtml(competition.organizer)}
-                </p>
-
-                <time class="competition-date"
-                      datetime="${escapeHtml(competition.competition_date)}">
-                    ${escapeHtml(dateLabel)}
-                </time>
-
-                <div class="competition-description">
-                    ${descriptionHtml}
-                </div>
-
+                <p class="competition-organizer">${escapeHtml(competition.organizer)}</p>
+                <time class="competition-date" datetime="${escapeHtml(competition.competition_date)}">${escapeHtml(dateLabel)}</time>
+                <div class="competition-description">${description}</div>
                 <div class="competition-achievement">
                     <span>Achievement</span>
                     <strong>${escapeHtml(competition.achievement)}</strong>
                 </div>
-
-                <div class="competition-actions">
-                    ${urlHtml}
-                    ${editHtml}
-
-                    <form method="post"
-                          action="${escapeHtml(starUrl)}"
-                          class="star-form">
-                        {% csrf_token %}
-                        <button
-                            type="submit"
-                            class="button button-star${isStarredClass}"
-                            title="${escapeHtml(starTitle)}">
-                            <span aria-hidden="true">★</span>
-                            ${starText}
-                            <span class="star-count">
-                                ${escapeHtml(competition.star_count)}
-                            </span>
-                        </button>
-                    </form>
-
-                    ${deleteHtml}
-                </div>
-            </div>
-        `;
-
-        return articleElement;
+                <div class="competition-actions">${link}${edit}${star}${remove}</div>
+            </div>`;
+        return article;
     }
 
     async function fetchCompetitions(searchQuery = '') {
-        if (competitionsAbortController) {
-            competitionsAbortController.abort();
-        }
-
-        competitionsAbortController = new AbortController();
+        if (competitionsAbortController) competitionsAbortController.abort();
+        const controller = new AbortController();
+        competitionsAbortController = controller;
 
         try {
             displayPageSection({ showLoading: true });
-
-            const url = searchQuery
-                ? `${BASE_COMPETITIONS_ENDPOINT}?title=${encodeURIComponent(searchQuery)}`
-                : BASE_COMPETITIONS_ENDPOINT;
+            const url = new URL(BASE_COMPETITIONS_ENDPOINT, window.location.origin);
+            if (searchQuery) url.searchParams.set('title', searchQuery);
 
             const response = await fetch(url, {
-                headers: { 'Accept': 'application/json' },
-                signal: competitionsAbortController.signal
+                headers: { Accept: 'application/json' },
+                signal: controller.signal,
             });
+            if (!response.ok) throw new Error(`HTTP ${response.status}`);
 
-            if (!response.ok) {
-                throw new Error('Failed to fetch competition data');
-            }
-
-            const competitionData = await response.json();
-            gridContainer.replaceChildren();
-
-            if (competitionData.length === 0) {
-                displayPageSection({ showEmpty: true });
-                return;
-            }
-
-            competitionData.forEach(item => {
-                gridContainer.appendChild(
-                    buildCompetitionCardElement(item)
-                );
-            });
-
-            displayPageSection({ showGrid: true });
+            const competitions = await response.json();
+            if (controller.signal.aborted) return;
+            gridContainer.replaceChildren(...competitions.map(buildCompetitionCardElement));
+            displayPageSection({ showGrid: competitions.length > 0, showEmpty: competitions.length === 0 });
         } catch (error) {
-            if (error.name === 'AbortError') return;
-
-            console.error('Error loading competitions:', error);
+            if (error.name === 'AbortError' || controller.signal.aborted) return;
+            console.error(error);
             displayPageSection({ showError: true });
         }
     }
 
-    const CREATE_COMPETITION_ENDPOINT = "{% url 'main:create_competition_ajax' %}";
-    const competitionForm = document.getElementById('competition-form');
-
-    // Read a cookie value, used to get the CSRF token
-    function getCookie(name) {
-        let cookieValue = null;
-        if (document.cookie && document.cookie !== '') {
-            const cookies = document.cookie.split(';');
-            for (let i = 0; i < cookies.length; i++) {
-                const cookie = cookies[i].trim();
-                if (cookie.substring(0, name.length + 1) === (name + '=')) {
-                    cookieValue = decodeURIComponent(cookie.substring(name.length + 1));
-                    break;
-                }
-            }
-        }
-        return cookieValue;
+    function apiErrorMessage(data, status) {
+        const messages = Object.values(data ?? {}).flat().filter(value => typeof value === 'string');
+        return messages.join(' ') || `Request failed (HTTP ${status}).`;
     }
 
-    function closeCompetitionModal() {
-        document.getElementById('add-competition-modal').hidePopover();
+    async function writeCompetition(url, method, payload) {
+        const response = await fetch(url, {
+            method,
+            headers: {
+                Accept: 'application/json',
+                'Content-Type': 'application/json',
+                'X-CSRFToken': getCookie('csrftoken') ?? '',
+            },
+            body: payload === undefined ? undefined : JSON.stringify(payload),
+        });
+        if (response.status === 204) return null;
+        const data = await response.json().catch(() => ({}));
+        if (!response.ok) throw new Error(apiErrorMessage(data, response.status));
+        return data;
     }
 
-    // Send the form data to the server
     async function addCompetition(event) {
         event.preventDefault();
-
-        const submitButton = competitionForm.querySelector('button[type="submit"]');
-        submitButton.disabled = true;
+        const button = competitionForm.querySelector('button[type="submit"]');
+        if (button.disabled) return;
+        button.disabled = true;
 
         try {
-            const response = await fetch(CREATE_COMPETITION_ENDPOINT, {
-                method: 'POST',
-                headers: { 'X-CSRFToken': getCookie('csrftoken') },
-                body: new FormData(competitionForm),
-            });
-            const result = await response.json().catch(() => ({}));
+            const fields = new FormData(competitionForm);
+            const payload = Object.fromEntries([
+                'title', 'organizer', 'competition_type', 'description', 'competition_date',
+                'achievement', 'participation_type', 'project_url', 'project_image_url',
+            ].map(name => [name, fields.get(name)]));
 
-            if (response.ok) {
-                competitionForm.reset();
-                closeCompetitionModal();
-                showToast('Success', 'New competition added successfully!', 'success');
-                fetchCompetitions(searchInput.value.trim());
-            } else {
-                const errorMessages = result.errors
-                    ? Object.values(result.errors).flat().map(error => error.message)
-                    : [result.message || `Something went wrong (status ${response.status}).`];
-                showToast('Failed to add competition', errorMessages.join(' '), 'error');
-            }
+            await writeCompetition(BASE_COMPETITIONS_ENDPOINT, 'POST', payload);
+            competitionForm.reset();
+            document.getElementById('add-competition-modal').hidePopover();
+            showToast('Success', 'Competition created.', 'success');
+            await fetchCompetitions(searchInput.value.trim());
         } catch (error) {
-            console.error('Error adding competition:', error);
-            showToast('Failed to add competition', 'Could not reach the server. Please try again.', 'error');
+            showToast('Could not create competition', error.message, 'error');
         } finally {
-            submitButton.disabled = false;
+            button.disabled = false;
         }
     }
 
-    if (competitionForm) {
-        competitionForm.addEventListener('submit', addCompetition);
-    }
+    if (competitionForm) competitionForm.addEventListener('submit', addCompetition);
 
+    gridContainer.addEventListener('click', async function(event) {
+        const button = event.target.closest('button[data-action]');
+        if (!button || button.disabled) return;
+        const action = button.dataset.action;
+        if (!['star', 'delete'].includes(action)) return;
+        if (action === 'delete' && !window.confirm('Delete this competition?')) return;
 
-    // Initial load
+        button.disabled = true;
+        try {
+            const pattern = action === 'star' ? STAR_COMPETITION_ENDPOINT : DETAIL_COMPETITION_ENDPOINT;
+            await writeCompetition(competitionEndpoint(pattern, button.dataset.id), action === 'star' ? 'POST' : 'DELETE');
+            showToast('Success', action === 'star' ? 'Star updated.' : 'Competition deleted.', 'success');
+            await fetchCompetitions(searchInput.value.trim());
+        } catch (error) {
+            showToast('Request failed', error.message, 'error');
+        } finally {
+            button.disabled = false;
+        }
+    });
+
+    searchInput.addEventListener('input', function() {
+        clearTimeout(searchDebounceTimer);
+        searchDebounceTimer = setTimeout(() => fetchCompetitions(searchInput.value.trim()), 300);
+    });
+
+    searchForm.addEventListener('submit', function(event) {
+        event.preventDefault();
+        clearTimeout(searchDebounceTimer);
+        fetchCompetitions(searchInput.value.trim());
+    });
+
     fetchCompetitions(searchInput.value.trim());
 </script>
 

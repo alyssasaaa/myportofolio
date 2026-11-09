@@ -18,6 +18,7 @@
             </h1>
 
             <form
+                id="competition-page-form"
                 method="post"
                 class="experience-form"
             >
@@ -59,4 +60,48 @@
         </div>
     </section>
 </main>
+
+{% if is_edit %}
+<script>
+    const competitionForm = document.getElementById('competition-page-form');
+    const COMPETITION_ENDPOINT = "{% url 'api:competition-detail' form.instance.pk %}";
+
+    competitionForm.addEventListener('submit', async function(event) {
+        event.preventDefault();
+        const button = competitionForm.querySelector('button[type="submit"]');
+        if (button.disabled) return;
+        button.disabled = true;
+
+        try {
+            const fields = new FormData(competitionForm);
+            const payload = Object.fromEntries([
+                'title', 'organizer', 'competition_type', 'description', 'competition_date',
+                'achievement', 'participation_type', 'project_url', 'project_image_url',
+            ].map(name => [name, fields.get(name)]));
+
+            const response = await fetch(COMPETITION_ENDPOINT, {
+                method: 'PATCH',
+                headers: {
+                    Accept: 'application/json',
+                    'Content-Type': 'application/json',
+                    'X-CSRFToken': fields.get('csrfmiddlewaretoken'),
+                },
+                body: JSON.stringify(payload),
+            });
+            const data = await response.json().catch(() => ({}));
+
+            if (!response.ok) {
+                const messages = Object.values(data).flat().filter(value => typeof value === 'string');
+                throw new Error(messages.join(' ') || `Request failed (HTTP ${response.status}).`);
+            }
+
+            showToast('Success', 'Competition updated successfully.', 'success');
+        } catch (error) {
+            showToast('Could not update competition', error.message, 'error');
+        } finally {
+            button.disabled = false;
+        }
+    });
+</script>
+{% endif %}
 {% endblock content %}
