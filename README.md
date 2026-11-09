@@ -109,4 +109,4 @@ Most assistance from Codex focused on:
 - `templates/competition.html`
 
 AI chat log:
-
+https://chatgpt.com/s/cx_6af1f37cf3a481919df1deb165be2180 
