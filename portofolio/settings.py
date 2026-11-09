@@ -156,3 +156,5 @@ MAILERS = {
 CSRF_TRUSTED_ORIGINS = [
     "https://alyssa-rahma-myportofolio.pws.cs.ui.ac.id",
 ]
+
+DEFAULT_AUTO_FIELD = "django.db.models.BigAutoField"

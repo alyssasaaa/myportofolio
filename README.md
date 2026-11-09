@@ -88,3 +88,25 @@ Prompting history — excerpts
 “/script code from experience/ edit this so it is integrated with my competitions” — adapting the tutorial script.
 “kenaapa sat aku mau coba add dia failed to reach?” — debugging AJAX submission.
 “if you see my codes, apa aja yg aku masih miss dari checkbox/apa yg disuruh?” — checking progress against the requirements. 
+
+### Assignment 6
+1. REST stands for REpresentational State Transfer. It is an architectural style that allows different applications to communicate over a network, with constraints such as stateless requests and a uniform interface.
+Returning JSON alone does not make an API RESTful because JSON is only a data format. REST also concerns how resources are identified and accessed through a consistent interface, including appropriate HTTP methods.
+The difference between PUT and PATCH is that PUT sends a complete update, while PATCH changes only selected fields. For example, I use pUT to update all Competition details and PATCH to change only its achievement. 
+
+2. A serializer converts model data into a form that can be sent as JSON. It also checks incoming data before saving it. The advantage over manually creating a dictionary is that a ModelSerializer handles much of the conversion and validation. This means less repeated code than writing a dictionary and checking every input myself.
+
+3. Authentication identifies the account making a request, while authorization decides which actions that account may perform. For example, logging in identifies the user, while permissions check whether they are an Editor who can edit competitions. Permissions must be checked on the server because hiding a button does not stop someone from sending a request directly to the API.
+
+4. A CSRF token is still needed because browsers automatically send session cookies. Another website could try to send an unwanted request using our logged-in session. The token helps protect against this. A test using force_authenticate is not enough because it bypasses normal authentication and session CSRF checks. To test CSRF protection, I use APIClient(enforce_csrf_checks=True) with login() and check that a request without a CSRF token is rejected.
+
+AI DISCLOSURE:
+I used Codex to check my adaptation of Tutorial 07 for the Competition section and identify missing minimum checklist requirements. It suggested code for the API, page integration, editing through PATCH, and mostly on tests_api.py. I also asked it to explain the reflective questions and help simplify and correct my complete answers. 
+
+Most assistance from Codex focused on:
+- `main/tests_api.py`
+- `templates/competition_form.html`
+- `templates/competition.html`
+
+AI chat log:
+https://chatgpt.com/s/cx_6af1f37cf3a481919df1deb165be2180 

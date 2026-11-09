@@ -8,4 +8,7 @@ urlpatterns = [
     path("experiences/", api_views.experience_list, name="experience-list"),
     path("experiences/<uuid:experience_id>/", api_views.experience_detail, name="experience-detail"),
     path("experiences/<uuid:experience_id>/star/", api_views.experience_star, name="experience-star"),
+    path("competitions/", api_views.competition_list, name="competition-list"),
+    path("competitions/<uuid:competition_id>/", api_views.competition_detail, name="competition-detail"),
+    path("competitions/<uuid:competition_id>/star/", api_views.competition_star, name="competition-star"),
 ]

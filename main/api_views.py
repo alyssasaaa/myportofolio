@@ -7,10 +7,11 @@ from rest_framework.decorators import (
 from rest_framework.permissions import IsAuthenticated
 from rest_framework.response import Response
 
-from main.models import Experience
+from main.models import Experience, Competition
 from main.permissions import IsPortfolioOwnerOrEditorOrReadOnly
-from main.serializers import ExperienceSerializer
+from main.serializers import ExperienceSerializer, CompetitionSerializer
 
+# ================= EXPERIENCE =====================
 
 @api_view(["GET", "HEAD", "POST"])
 @authentication_classes([SessionAuthentication])
@@ -57,7 +58,6 @@ def experience_detail(request, experience_id):
     serializer.save()
     return Response(serializer.data)
 
-
 @api_view(["POST"])
 @authentication_classes([SessionAuthentication])
 @permission_classes([IsAuthenticated])
@@ -69,4 +69,61 @@ def experience_star(request, experience_id):
         experience.starred_by.add(request.user)
 
     serializer = ExperienceSerializer(experience, context={"request": request})
+    return Response(serializer.data)
+
+# ================= COMPETITION =====================
+
+@api_view(["GET", "HEAD", "POST"])
+@authentication_classes([SessionAuthentication])
+@permission_classes([IsPortfolioOwnerOrEditorOrReadOnly])
+def competition_list(request):
+    if request.method in ("GET", "HEAD"):
+        competitions = Competition.objects.prefetch_related("starred_by").order_by("title", "id")
+        title = request.query_params.get("title", "").strip()
+        if title:
+            competitions = competitions.filter(title__icontains=title)
+
+        serializer = CompetitionSerializer(competitions, many=True, context={"request": request})
+        return Response(serializer.data)
+
+    serializer = CompetitionSerializer(data=request.data, context={"request": request})
+    serializer.is_valid(raise_exception=True)
+    serializer.save()
+    return Response(serializer.data, status=status.HTTP_201_CREATED)
+
+
+@api_view(["GET", "HEAD", "PUT", "PATCH", "DELETE"])
+@authentication_classes([SessionAuthentication])
+@permission_classes([IsPortfolioOwnerOrEditorOrReadOnly])
+def competition_detail(request, competition_id):
+    competition = get_object_or_404(Competition.objects.prefetch_related("starred_by"), pk=competition_id)
+
+    if request.method in ("GET", "HEAD"):
+        serializer = CompetitionSerializer(competition, context={"request": request})
+        return Response(serializer.data)
+
+    if request.method == "DELETE":
+        competition.delete()
+        return Response(status=status.HTTP_204_NO_CONTENT)
+
+    serializer = CompetitionSerializer(
+        competition, data=request.data, partial=request.method == "PATCH", context={"request": request},
+    )
+    serializer.is_valid(raise_exception=True)
+    serializer.save()
+    return Response(serializer.data)
+
+
+@api_view(["POST"])
+@authentication_classes([SessionAuthentication])
+@permission_classes([IsAuthenticated])
+def competition_star(request, competition_id):
+    competition = get_object_or_404(Competition, pk=competition_id)
+
+    if competition.starred_by.filter(pk=request.user.pk).exists():
+        competition.starred_by.remove(request.user)
+    else:
+        competition.starred_by.add(request.user)
+
+    serializer = CompetitionSerializer(competition, context={"request": request})
     return Response(serializer.data)
