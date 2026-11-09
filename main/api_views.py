@@ -58,8 +58,6 @@ def experience_detail(request, experience_id):
     serializer.save()
     return Response(serializer.data)
 
-# ================= COMPETITION =====================
-
 @api_view(["POST"])
 @authentication_classes([SessionAuthentication])
 @permission_classes([IsAuthenticated])
@@ -72,6 +70,8 @@ def experience_star(request, experience_id):
 
     serializer = ExperienceSerializer(experience, context={"request": request})
     return Response(serializer.data)
+
+# ================= COMPETITION =====================
 
 @api_view(["GET", "HEAD", "POST"])
 @authentication_classes([SessionAuthentication])
